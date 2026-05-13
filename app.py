@@ -18,22 +18,25 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload():
 
-    # cek apakah ada file
+    # cek file
     if 'image' not in request.files:
         return "Tidak ada file"
 
     file = request.files['image']
 
-    # cek nama file kosong
+    # cek nama kosong
     if file.filename == '':
-        return "File belum dipilih"
+        return "Belum pilih file"
 
-    # simpan file
+    # simpan gambar
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     file.save(filepath)
 
-    return f"Gambar berhasil diupload: {file.filename}"
-
+    # kirim nama file ke HTML
+    return render_template(
+        'index.html',
+        filename=file.filename
+    )
 
 # Jalankan Flask
 if __name__ == '__main__':
