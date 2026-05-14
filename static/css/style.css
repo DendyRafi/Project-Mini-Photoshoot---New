@@ -1,0 +1,17 @@
+body{
+    background-color: #f5f5f5;
+}
+
+.sidebar{
+    background-color: white;
+    min-height: 100vh;
+    border-right: 1px solid #ddd;
+    padding: 20px;
+}
+
+.preview-image{
+    max-height: 500px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+    margin-top: 20px;
+}
