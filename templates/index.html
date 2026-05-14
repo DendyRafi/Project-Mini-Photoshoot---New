@@ -7,6 +7,7 @@
 
     <h1>Mini Photoshop Python</h1>
 
+    <!-- Form Upload -->
     <form action="/upload" method="POST" enctype="multipart/form-data">
 
         <input type="file" name="image">
@@ -16,6 +17,40 @@
         </button>
 
     </form>
+
+    <hr>
+
+    <!-- Tampilkan gambar -->
+    {% if filename %}
+
+        <h2>Gambar Asli</h2>
+
+        <img
+            src="{{ url_for('static', filename='uploads/' + filename) }}"
+            width="400"
+        >
+
+    {% endif %}
+
+    <a href="/grayscale/{{ filename }}">
+    <button>Grayscale</button>
+</a>
+
+<a href="/blur/{{ filename }}">
+    <button>Blur</button>
+</a>
+
+<a href="/sharpen/{{ filename }}">
+    <button>Sharpen</button>
+</a>
+
+<a href="/threshold/{{ filename }}">
+    <button>Threshold</button>
+</a>
+
+<a href="/edge/{{ filename }}">
+    <button>Edge</button>
+</a>
 
 </body>
 </html>
