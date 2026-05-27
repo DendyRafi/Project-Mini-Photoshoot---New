@@ -8,39 +8,36 @@
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* CSS Tambahan untuk Parameter Slider & Sub-Panel Dinamis */
+        .control-group { margin-bottom: 14px; background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border); }
+        .control-group label { display: block; font-size: 11px; text-transform: uppercase; color: var(--text-2); margin-bottom: 6px; font-weight: 600; }
+        .slider-row { display: flex; align-items: center; gap: 10px; }
+        .slider-row input[type="range"] { flex: 1; accent-color: var(--accent); }
+        .slider-row span { font-size: 11px; color: var(--accent); font-weight: 600; min-width: 24px; text-align: right; }
+        .btn-apply { width: 100%; background: var(--accent); color: #0e0e10; font-family: var(--font-display); font-weight: 700; font-size: 12px; padding: 8px; border-radius: 6px; margin-top: 8px; transition: 0.2s; }
+        .btn-apply:hover { background: #c5ff70; transform: translateY(-1px); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .hist-container { margin-top: 10px; text-align: center; background: #17171a; border-radius: var(--radius-md); padding: 8px; border: 1px solid var(--border); }
+        .hist-container img { max-width: 100%; height: auto; border-radius: 4px; }
+    </style>
 </head>
 <body>
 
 <div class="app-shell">
 
     <nav class="icon-rail">
-        <div class="rail-logo">
-            <i class="fa-solid fa-wand-magic-sparkles"></i>
-        </div>
+        <div class="rail-logo"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
         <div class="rail-links">
-            <a href="#" class="rail-btn active" data-tip="Dasar">
-                <i class="fa-solid fa-layer-group"></i>
-            </a>
-            <a href="#" class="rail-btn" data-tip="Adjust">
-                <i class="fa-solid fa-sliders"></i>
-            </a>
-            <a href="#" class="rail-btn" data-tip="Filter">
-                <i class="fa-solid fa-wand-magic"></i>
-            </a>
-            <a href="#" class="rail-btn" data-tip="Transform">
-                <i class="fa-solid fa-crop-simple"></i>
-            </a>
-            <a href="#" class="rail-btn" data-tip="Histogram">
-                <i class="fa-solid fa-chart-bar"></i>
-            </a>
-            <a href="#" class="rail-btn" data-tip="Teks">
-                <i class="fa-solid fa-font"></i>
-            </a>
+            <a href="#" class="rail-btn active" data-tab="tab-dasar" data-tip="Dasar"><i class="fa-solid fa-layer-group"></i></a>
+            <a href="#" class="rail-btn" data-tab="tab-adjust" data-tip="Adjust"><i class="fa-solid fa-sliders"></i></a>
+            <a href="#" class="rail-btn" data-tab="tab-filter" data-tip="Filter & Noise"><i class="fa-solid fa-wand-magic"></i></a>
+            <a href="#" class="rail-btn" data-tab="tab-transform" data-tip="Transform"><i class="fa-solid fa-crop-simple"></i></a>
+            <a href="#" class="rail-btn" data-tab="tab-histogram" data-tip="Histogram"><i class="fa-solid fa-chart-bar"></i></a>
         </div>
         <div class="rail-bottom">
-            <a href="/reset" class="rail-btn danger" data-tip="Reset">
-                <i class="fa-solid fa-rotate-left"></i>
-            </a>
+            <a href="/reset" class="rail-btn danger" data-tip="Reset"><i class="fa-solid fa-rotate-left"></i></a>
         </div>
     </nav>
 
@@ -50,276 +47,254 @@
             <input type="text" placeholder="Cari fitur...">
         </div>
 
-        <div class="panel-section">
-            <p class="section-label">Rekomendasi</p>
+        <div id="tab-dasar" class="tab-content active panel-section">
+            <p class="section-label">Fitur Citra Dasar</p>
             <div class="tools-grid">
-
-                <a href="/process/grayscale" class="tool-card">
-                    <div class="card-thumb grayscale-thumb">
-                        <div class="thumb-split">
-                            <div class="split-color"></div>
-                            <div class="split-gray"></div>
-                        </div>
-                        <div class="card-badge">Dasar</div>
-                    </div>
+                <div class="tool-card" onclick="applyFilter('grayscale')">
+                    <div class="card-thumb grayscale-thumb"><div class="thumb-split"><div class="split-color"></div><div class="split-gray"></div></div><div class="card-badge">Color</div></div>
                     <span class="card-label">Grayscale</span>
-                </a>
-
-                <a href="/process/blur" class="tool-card">
-                    <div class="card-thumb blur-thumb">
-                        <div class="thumb-blur-demo">
-                            <div class="blur-circle c1"></div>
-                            <div class="blur-circle c2"></div>
-                        </div>
-                        <div class="card-badge">Dasar</div>
-                    </div>
-                    <span class="card-label">Smoothing</span>
-                </a>
-
-                <a href="#" class="tool-card">
-                    <div class="card-thumb sharp-thumb">
-                        <div class="sharp-lines">
-                            <div class="sline"></div>
-                            <div class="sline"></div>
-                            <div class="sline"></div>
-                        </div>
-                        <div class="card-badge">Dasar</div>
-                    </div>
+                </div>
+                <div class="tool-card" onclick="applyFilter('histogram_equalization')">
+                    <div class="card-thumb brightness-thumb"><div class="bright-gradient"></div><div class="card-badge">Enhance</div></div>
+                    <span class="card-label">Equalization</span>
+                </div>
+                <div class="tool-card" onclick="applyFilter('sharpening')">
+                    <div class="card-thumb sharp-thumb"><div class="sharp-lines"><div class="sline"></div><div class="sline"></div></div><div class="card-badge">Enhance</div></div>
                     <span class="card-label">Sharpening</span>
-                </a>
-
-                <a href="#" class="tool-card">
-                    <div class="card-thumb edge-thumb">
-                        <div class="edge-demo">
-                            <div class="edge-rect"></div>
-                        </div>
-                        <div class="card-badge">Dasar</div>
-                    </div>
-                    <span class="card-label">Edge Canny</span>
-                </a>
-
+                </div>
+                <div class="tool-card" onclick="applyFilter('cnn_detect')">
+                    <div class="card-thumb edge-thumb"><div class="edge-rect" style="border-color:#ff5252"></div><div class="card-badge">AI CNN</div></div>
+                    <span class="card-label">CNN Detect</span>
+                </div>
             </div>
-        </div>
-
-        <div class="panel-section">
-            <p class="section-label">Adjust & Warna</p>
+            
+            <p class="section-label" style="margin-top:20px;">Channel Splitting</p>
             <div class="tools-grid">
-
-                <a href="#" class="tool-card">
-                    <div class="card-thumb brightness-thumb">
-                        <div class="bright-gradient"></div>
-                        <div class="card-badge">Adjust</div>
-                    </div>
-                    <span class="card-label">Brightness</span>
-                </a>
-
-                <a href="#" class="tool-card">
-                    <div class="card-thumb contrast-thumb">
-                        <div class="contrast-half h1"></div>
-                        <div class="contrast-half h2"></div>
-                        <div class="card-badge">Adjust</div>
-                    </div>
-                    <span class="card-label">Contrast</span>
-                </a>
-
-                <a href="#" class="tool-card">
-                    <div class="card-thumb saturation-thumb">
-                        <div class="sat-ring r1"></div>
-                        <div class="sat-ring r2"></div>
-                        <div class="card-badge">Adjust</div>
-                    </div>
-                    <span class="card-label">Saturation</span>
-                </a>
-
-                <a href="#" class="tool-card">
-                    <div class="card-thumb hue-thumb">
-                        <div class="hue-wheel"></div>
-                        <div class="card-badge">Adjust</div>
-                    </div>
-                    <span class="card-label">Hue Rotate</span>
-                </a>
-
+                <button class="btn-apply" onclick="applyFilter('color_channel', {channel: 'R'})" style="background:#ff5252; color:white;">Red Channel</button>
+                <button class="btn-apply" onclick="applyFilter('color_channel', {channel: 'G'})" style="background:#4ade80; color:#0e0e10;">Green Channel</button>
+                <button class="btn-apply" onclick="applyFilter('color_channel', {channel: 'B'})" style="background:#38bdf8; color:white;">Blue Channel</button>
             </div>
         </div>
 
-        <div class="panel-section">
-            <p class="section-label">Transform</p>
+        <div id="tab-adjust" class="tab-content panel-section">
+            <p class="section-label">Enhancement Slider</p>
+            <div class="control-group">
+                <label>Brightness</label>
+                <div class="slider-row">
+                    <input type="range" id="range-brightness" min="-100" max="100" value="0" oninput="updateSliderVal(this)">
+                    <span id="val-brightness">0</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Contrast</label>
+                <div class="slider-row">
+                    <input type="range" id="range-contrast" min="5" max="30" value="10" oninput="updateSliderVal(this)">
+                    <span id="val-contrast">1.0</span>
+                </div>
+            </div>
+            <button class="btn-apply" onclick="applyBrightnessContrast()">Terapkan Kecerahan</button>
+
+            <p class="section-label" style="margin-top:20px;">JPEG Compression Simulation</p>
+            <div class="control-group">
+                <label>Kualitas File (%)</label>
+                <div class="slider-row">
+                    <input type="range" id="range-compress" min="5" max="100" value="80" oninput="updateSliderVal(this)">
+                    <span id="val-compress">80</span>
+                </div>
+            </div>
+            <button class="btn-apply" onclick="applyFilter('compress', {quality: document.getElementById('range-compress').value})">Simulasikan Kompresi</button>
+        </div>
+
+        <div id="tab-filter" class="tab-content panel-section">
+            <p class="section-label">Smoothing & Restoration</p>
             <div class="tools-grid">
+                <div class="tool-card" onclick="applyFilter('blur_filter', {type: 'gaussian', kernel: 9})">
+                    <span class="card-label"><i class="fa-solid fa-eye-slash"></i> Gaussian Blur</span>
+                </div>
+                <div class="tool-card" onclick="applyFilter('blur_filter', {type: 'median', kernel: 5})">
+                    <span class="card-label"><i class="fa-solid fa-filter"></i> Median Filter</span>
+                </div>
+            </div>
 
-                <a href="#" class="tool-card">
-                    <div class="card-thumb crop-thumb">
-                        <div class="crop-icon-demo">
-                            <i class="fa-solid fa-crop-simple"></i>
-                        </div>
-                        <div class="card-badge">Transform</div>
-                    </div>
-                    <span class="card-label">Crop</span>
-                </a>
+            <p class="section-label" style="margin-top:20px;">Binary & Edge Processing</p>
+            <div class="tools-grid">
+                <button class="btn-apply" onclick="applyFilter('edge_detection', {method: 'canny'})">Canny Edge</button>
+                <button class="btn-apply" onclick="applyFilter('edge_detection', {method: 'sobel'})">Sobel Edge</button>
+                <button class="btn-apply" onclick="applyFilter('edge_detection', {method: 'laplacian'})">Laplacian</button>
+            </div>
 
-                <a href="#" class="tool-card">
-                    <div class="card-thumb rotate-thumb">
-                        <div class="rotate-icon-demo">
-                            <i class="fa-solid fa-rotate-right"></i>
-                        </div>
-                        <div class="card-badge">Transform</div>
-                    </div>
-                    <span class="card-label">Rotate</span>
-                </a>
-
+            <p class="section-label" style="margin-top:20px;">Morfologi Biner</p>
+            <div class="tools-grid">
+                <button class="btn-apply" onclick="applyFilter('morphology', {type: 'erosion', kernel: 3})">Erosi</button>
+                <button class="btn-apply" onclick="applyFilter('morphology', {type: 'dilation', kernel: 3})">Dilatasi</button>
             </div>
         </div>
 
+        <div id="tab-transform" class="tab-content panel-section">
+            <p class="section-label">Rotasi Matriks Affine</p>
+            <div class="control-group">
+                <label>Derajat (0°–360°)</label>
+                <div class="slider-row">
+                    <input type="range" id="range-rotate" min="0" max="360" value="0" oninput="updateSliderVal(this)">
+                    <span id="val-rotate">0°</span>
+                </div>
+            </div>
+            <button class="btn-apply" onclick="applyFilter('rotate', {angle: document.getElementById('range-rotate').value})">Putar Gambar</button>
+
+            <p class="section-label" style="margin-top:20px;">Geometri Cepat</p>
+            <div class="tools-grid">
+                <button class="btn-apply" onclick="applyFilter('flip', {direction: 'horizontal'})"><i class="fa-solid fa-arrows-left-right"></i> Flip Horisontal</button>
+                <button class="btn-apply" onclick="applyFilter('flip', {direction: 'vertical'})"><i class="fa-solid fa-arrows-up-down"></i> Flip Vertikal</button>
+            </div>
+            <div class="control-group" style="margin-top:14px;">
+                <label>Skala Ukuran (%)</label>
+                <div class="slider-row">
+                    <input type="range" id="range-resize" min="10" max="200" value="100" oninput="updateSliderVal(this)">
+                    <span id="val-resize">100%</span>
+                </div>
+            </div>
+            <button class="btn-apply" onclick="applyFilter('resize', {scale: document.getElementById('range-resize').value})">Ubah Ukuran Citra</button>
+        </div>
+
+        <div id="tab-histogram" class="tab-content panel-section">
+            <p class="section-label">Histogram Before</p>
+            <div class="hist-container">
+                {% if hist_original %}
+                <img id="img-hist-ori" src="/{{ hist_original }}?t={{ range(1, 99999) | random }}">
+                {% else %}
+                <span style="font-size:11px; color:var(--text-3)">Belum ada citra terunggah</span>
+                {% endif %}
+            </div>
+            <p class="section-label" style="margin-top:20px;">Histogram After</p>
+            <div class="hist-container">
+                {% if hist_processed %}
+                <img id="img-hist-proc" src="/{{ hist_processed }}?t={{ range(1, 99999) | random }}">
+                {% else %}
+                <span style="font-size:11px; color:var(--text-3)">Belum ada hasil modifikasi</span>
+                {% endif %}
+            </div>
+        </div>
     </aside>
 
     <main class="workspace">
-
         <header class="top-bar">
             <div class="topbar-left">
                 <span class="brand-name">Pixel<span class="accent">Lab</span></span>
-                <div class="file-info">
-                    <i class="fa-regular fa-file-image"></i>
-                    <span>Projek Pengolahan Citra Digital</span>
-                </div>
+                <div class="file-info"><i class="fa-regular fa-file-image"></i><span>Projek Pengolahan Citra Digital</span></div>
             </div>
             <div class="topbar-right">
-                <button class="btn-icon-only" title="Zoom In"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-                <button class="btn-icon-only" title="Zoom Out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
                 <div class="divider-v"></div>
-                <button class="btn-icon-only" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
-                <button class="btn-icon-only" title="Redo"><i class="fa-solid fa-rotate-right"></i></button>
-                <div class="divider-v"></div>
-                
                 {% if processed_image %}
-                <a href="/download" style="text-decoration: none;">
-                    <button class="btn-download">
-                        <i class="fa-solid fa-download"></i> Simpan Gambar
-                    </button>
-                </a>
+                <a href="/download" style="text-decoration: none;"><button class="btn-download"><i class="fa-solid fa-download"></i> Simpan Gambar</button></a>
                 {% else %}
-                <button class="btn-download" style="opacity: 0.5; cursor: not-allowed;" disabled>
-                    <i class="fa-solid fa-download"></i> Simpan Gambar
-                </button>
+                <button class="btn-download" style="opacity: 0.5; cursor: not-allowed;" disabled><i class="fa-solid fa-download"></i> Simpan Gambar</button>
                 {% endif %}
             </div>
         </header>
 
         <div class="canvas-zone">
-
             {% if not original_image %}
             <div class="upload-state" id="uploadState">
                 <div class="upload-card">
-                    <div class="upload-icon-ring">
-                        <i class="fa-solid fa-cloud-arrow-up"></i>
-                    </div>
+                    <div class="upload-icon-ring"><i class="fa-solid fa-cloud-arrow-up"></i></div>
                     <h2>Unggah foto untuk mulai mengedit</h2>
                     <p>Mendukung format JPG, PNG, atau BMP · Maks 20MB</p>
-
                     <form action="/upload" method="post" enctype="multipart/form-data" id="uploadForm">
-                        <label for="fileInput" class="btn-upload-primary">
-                            <i class="fa-solid fa-plus"></i> Upload Gambar
-                        </label>
-                        <input type="file" id="fileInput" name="image" accept="image/*"
-                               onchange="document.getElementById('uploadForm').submit()" style="display:none;">
+                        <label for="fileInput" class="btn-upload-primary"><i class="fa-solid fa-plus"></i> Upload Gambar</label>
+                        <input type="file" id="fileInput" name="image" accept="image/*" onchange="document.getElementById('uploadForm').submit()" style="display:none;">
                     </form>
-
-                    <div class="sample-section">
-                        <p class="sample-hint">Atau coba gambar sampel:</p>
-                        <div class="sample-thumbs">
-                            <div class="sample-img s1"></div>
-                            <div class="sample-img s2"></div>
-                            <div class="sample-img s3"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="floating-pills">
-                    <span class="pill"><i class="fa-solid fa-adjust"></i> Grayscale</span>
-                    <span class="pill"><i class="fa-solid fa-eye-slash"></i> Blur</span>
-                    <span class="pill"><i class="fa-solid fa-border-all"></i> Edge Detection</span>
-                    <span class="pill"><i class="fa-solid fa-triangle-exclamation"></i> Sharpening</span>
                 </div>
             </div>
             {% else %}
             <div class="preview-state">
                 <div class="preview-label-row">
                     <span class="preview-badge original">Sebelum (Original)</span>
-                    <div class="zoom-info">Review Panel</div>
+                    <div class="zoom-info" id="status-loading">Review Mode Actived</div>
                     <span class="preview-badge processed">Sesudah (Hasil Edit)</span>
                 </div>
                 <div class="preview-panels">
-                    <div class="panel-box">
-                        <div class="image-frame">
-                            <img src="/{{ original_image }}" alt="Original">
-                        </div>
-                    </div>
+                    <div class="panel-box"><div class="image-frame"><img src="/{{ original_image }}" alt="Original"></div></div>
                     <div class="panel-divider"><i class="fa-solid fa-arrows-left-right"></i></div>
-                    <div class="panel-box">
-                        <div class="image-frame">
-                            <img src="/{{ processed_image }}" alt="Processed">
-                        </div>
-                    </div>
+                    <div class="panel-box"><div class="image-frame"><img id="display-processed" src="/{{ processed_image }}?t={{ range(1, 9999) | random }}" alt="Processed"></div></div>
                 </div>
             </div>
             {% endif %}
-
         </div>
 
         <footer class="status-bar">
-            <span><i class="fa-solid fa-circle-check" style="color:#4ade80"></i> Siap diproses</span>
-            <span>PixelLab v2.0</span>
+            <span><i class="fa-solid fa-circle-check" style="color:#4ade80"></i> Python-Flask Engine Online</span>
+            <span>Dosen: Rizki Elisa Nalawati, S.T.,M.T.</span>
         </footer>
-
     </main>
-
 </div>
 
 <script>
-    // Tooltip untuk icon rail
-    document.querySelectorAll('.rail-btn[data-tip]').forEach(btn => {
-        btn.addEventListener('mouseenter', e => {
-            const tip = document.createElement('div');
-            tip.className = 'tooltip-bubble';
-            tip.textContent = btn.dataset.tip;
-            document.body.appendChild(tip);
-            const r = btn.getBoundingClientRect();
-            tip.style.top = r.top + r.height / 2 - tip.offsetHeight / 2 + 'px';
-            tip.style.left = r.right + 10 + 'px';
-            btn._tip = tip;
-        });
-        btn.addEventListener('mouseleave', () => {
-            if (btn._tip) { btn._tip.remove(); btn._tip = null; }
+    // Logika Alih Tab Menu (Icon Rail)
+    document.querySelectorAll('.rail-btn[data-tab]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            btn.classList.add('active');
+            document.getElementById(btn.dataset.tab).classList.add('active');
         });
     });
 
-    // Drag & drop upload
-    const zone = document.querySelector('.canvas-zone');
-    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
-    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
-    zone.addEventListener('drop', e => {
-        e.preventDefault();
-        zone.classList.remove('drag-over');
-        const file = e.dataTransfer.files[0];
-        if (file && file.type.startsWith('image/')) {
-            console.log('File dropped:', file.name);
-            // Menghubungkan drag & drop langsung ke form input file
-            const fileInput = document.getElementById('fileInput');
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            fileInput.files = dataTransfer.files;
-            document.getElementById('uploadForm').submit();
+    // Mengubah angka label dari nilai slider secara interaktif
+    function updateSliderVal(slider) {
+        const idLabel = slider.id.replace('range-', 'val-');
+        let suffix = "";
+        if(slider.id.includes('rotate')) suffix = "°";
+        if(slider.id.includes('resize')) suffix = "%";
+        
+        if(slider.id.includes('contrast')) {
+            document.getElementById(idLabel).textContent = (slider.value / 10).toFixed(1);
+        } else {
+            document.getElementById(idLabel).textContent = slider.value + suffix;
         }
-    });
+    }
 
-    // Search filter
-    const searchInput = document.querySelector('.panel-search input');
-    searchInput.addEventListener('input', () => {
-        const q = searchInput.value.toLowerCase();
-        document.querySelectorAll('.tool-card').forEach(card => {
-            const label = card.querySelector('.card-label').textContent.toLowerCase();
-            card.style.display = label.includes(q) ? '' : 'none';
+    // Fungsi pengiriman AJAX utama ke server Flask
+    function applyFilter(actionName, parameterObject = {}) {
+        const statusNode = document.getElementById('status-loading');
+        if(statusNode) statusNode.textContent = "Sedang Memproses Citra...";
+        
+        fetch('/api/process', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: actionName, params: parameterObject })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.processed_image) {
+                // Menambahkan anti-cache timestamp agar gambar langsung disegarkan di halaman web
+                const d = new Date();
+                const imageNode = document.getElementById('display-processed');
+                if(imageNode) imageNode.src = "/" + data.processed_image + "?t=" + d.getTime();
+                
+                if(statusNode) statusNode.textContent = "Proses Selesai";
+                
+                // Jika tab histogram sedang aktif, segarkan gambar grafik statistiknya
+                if(data.reload_hist) {
+                    const hO = document.getElementById('img-hist-ori');
+                    const hP = document.getElementById('img-hist-proc');
+                    if(hO) hO.src = "/static/outputs/hist_ori.png?t=" + d.getTime();
+                    if(hP) hP.src = "/static/outputs/hist_proc.png?t=" + d.getTime();
+                }
+            }
+        })
+        .catch(err => {
+            if(statusNode) statusNode.textContent = "Error Terjadi!";
+            console.error(err);
         });
-    });
-</script>
+    }
 
+    function applyBrightnessContrast() {
+        const b = document.getElementById('range-brightness').value;
+        const c = document.getElementById('range-contrast').value / 10;
+        applyFilter('brightness_contrast', { brightness: b, contrast: c });
+    }
+</script>
 </body>
 </html>
