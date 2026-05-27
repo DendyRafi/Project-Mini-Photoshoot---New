@@ -1,141 +1,114 @@
-from flask import Flask, render_template, request
 import os
-
-from processing.grayscale import grayscale_image
-from processing.blur import blur_image
-from processing.sharpen import sharpen_image
-from processing.threshold import threshold_image
-from processing.edge import edge_image
-from processing.transform import resize_image, rotate_image, flip_image
+import time
+import cv2
+from flask import Flask, render_template, request, redirect, url_for, send_file
 
 app = Flask(__name__)
 
-# Folder upload
+# Konfigurasi folder menggunakan path relatif yang bersih tanpa slash di awal
 UPLOAD_FOLDER = 'static/uploads'
+OUTPUT_FOLDER = 'static/outputs'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['UPLOAD_OUTPUT'] = OUTPUT_FOLDER
 
+# Pastikan direktori folder aman & tersedia
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
-# Halaman utama
+# Menyimpan riwayat path berkas gambar aktif
+current_image = {
+    'original': None,
+    'processed': None
+}
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', 
+                           original_image=current_image['original'], 
+                           processed_image=current_image['processed'])
 
-
-# Upload gambar
 @app.route('/upload', methods=['POST'])
-def upload():
-
-    # cek file
+def upload_image():
     if 'image' not in request.files:
-        return "Tidak ada file"
-
+        return redirect(request.url)
+    
     file = request.files['image']
-
-    # cek nama kosong
     if file.filename == '':
-        return "Belum pilih file"
+        return redirect(request.url)
+    
+    if file:
+        # Menambahkan format timestamp agar nama berkas selalu unik & menghindari cache browser
+        timestamp = int(time.time())
+        filename = f"{timestamp}_{file.filename}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        
+        # Simpan path dengan standarisasi garis miring (replace backslash jika di Windows)
+        clean_path = filepath.replace('\\', '/')
+        current_image['original'] = clean_path
+        current_image['processed'] = clean_path
+        
+        return redirect(url_for('index'))
 
-    # simpan gambar
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-    file.save(filepath)
+# --- ROUTE FITUR EKSPERIMEN CITRA ---
 
-    # kirim nama file ke HTML
-    return render_template(
-        'index.html',
-        filename=file.filename
-    )
-
-@app.route('/grayscale/<filename>')
-def grayscale(filename):
-
-    # lokasi gambar asli
-    input_path = os.path.join('static/uploads', filename)
-
-    # nama output
-    output_filename = 'gray_' + filename
-
-    # lokasi hasil
-    output_path = os.path.join('static/outputs', output_filename)
-
-    # proses grayscale
-    grayscale_image(input_path, output_path)
-
-    # tampilkan hasil
-    return render_template(
-        'index.html',
-        filename=filename,
-        output_image=output_filename
-    )
-
-@app.route('/blur/<filename>')
-def blur(filename):
-
-    input_path = os.path.join('static/uploads', filename)
-
-    output_filename = 'blur_' + filename
-
-    output_path = os.path.join('static/outputs', output_filename)
-
-    blur_image(input_path, output_path)
-
-    return render_template(
-        'index.html',
-        filename=filename,
-        output_image=output_filename
-    )
-
-@app.route('/sharpen/<filename>')
-def sharpen(filename):
-
-    input_path = os.path.join('static/uploads', filename)
-
-    output_filename = 'sharpen_' + filename
-
-    output_path = os.path.join('static/outputs', output_filename)
-
-    sharpen_image(input_path, output_path)
-
-    return render_template(
-        'index.html',
-        filename=filename,
-        output_image=output_filename
-    )
-
-@app.route('/threshold/<filename>')
-def threshold(filename):
-
-    input_path = os.path.join('static/uploads', filename)
-
-    output_filename = 'threshold_' + filename
-
-    output_path = os.path.join('static/outputs', output_filename)
-
-    threshold_image(input_path, output_path)
-
-    return render_template(
-        'index.html',
-        filename=filename,
-        output_image=output_filename
-    )
-
-@app.route('/edge/<filename>')
-def edge(filename):
-
-    input_path = os.path.join('static/uploads', filename)
-
-    output_filename = 'edge_' + filename
-
-    output_path = os.path.join('static/outputs', output_filename)
-
-    edge_image(input_path, output_path)
-
-    return render_template(
-        'index.html',
-        filename=filename,
-        output_image=output_filename
-    )
+@app.route('/process/grayscale')
+def process_grayscale():
+    if not current_image['original']:
+        return redirect(url_for('index'))
+    
+    # Baca gambar asli
+    img = cv2.imread(current_image['original'])
+    
+    # Eksekusi konversi ruang warna
+    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    
+    # Buat nama file keluaran baru
+    out_filename = "gray_" + os.path.basename(current_image['original'])
+    out_filepath = os.path.join(app.config['UPLOAD_OUTPUT'], out_filename).replace('\\', '/')
+    
+    # Simpan hasil olahan
+    cv2.imwrite(out_filepath, gray_img)
+    
+    # Update status preview kanan
+    current_image['processed'] = out_filepath
+    return redirect(url_for('index'))
 
 
-# Jalankan Flask
+@app.route('/process/blur')
+def process_blur():
+    if not current_image['original']:
+        return redirect(url_for('index'))
+        
+    img = cv2.imread(current_image['original'])
+    
+    # Menggunakan metode Gaussian Blur dengan kernel matriks berukuran (15, 15)
+    blur_img = cv2.GaussianBlur(img, (15, 15), 0)
+    
+    out_filename = "blur_" + os.path.basename(current_image['original'])
+    out_filepath = os.path.join(app.config['UPLOAD_OUTPUT'], out_filename).replace('\\', '/')
+    
+    cv2.imwrite(out_filepath, blur_img)
+    
+    current_image['processed'] = out_filepath
+    return redirect(url_for('index'))
+
+
+@app.route('/download')
+def download_image():
+    if current_image['processed'] and os.path.exists(current_image['processed']):
+        return send_file(current_image['processed'], as_attachment=True)
+    return redirect(url_for('index'))
+
+
+# TAMBAHAN: Rute untuk mengosongkan gambar (Tombol Reset di kiri bawah HTML)
+@app.route('/reset')
+def reset_image():
+    current_image['original'] = None
+    current_image['processed'] = None
+    return redirect(url_for('index'))
+
+
 if __name__ == '__main__':
+    # Menggunakan debug=True sangat baik saat masa pengembangan/development
     app.run(debug=True)
