@@ -76,23 +76,51 @@
             </div>
         </div>
 
-        <div id="tab-adjust" class="tab-content panel-section">
-            <p class="section-label">Enhancement Slider</p>
-            <div class="control-group">
-                <label>Brightness</label>
-                <div class="slider-row">
-                    <input type="range" id="range-brightness" min="-100" max="100" value="0" oninput="updateSliderVal(this)">
-                    <span id="val-brightness">0</span>
-                </div>
-            </div>
-            <div class="control-group">
-                <label>Contrast</label>
-                <div class="slider-row">
-                    <input type="range" id="range-contrast" min="5" max="30" value="10" oninput="updateSliderVal(this)">
-                    <span id="val-contrast">1.0</span>
-                </div>
-            </div>
-            <button class="btn-apply" onclick="applyBrightnessContrast()">Terapkan Kecerahan</button>
+      <div id="tab-adjust" class="tab-content panel-section">
+
+    <p class="section-label">Enhancement Slider</p>
+
+    <!-- BRIGHTNESS -->
+    <div class="control-group">
+
+        <label>Brightness</label>
+
+        <div class="slider-row">
+
+            <input
+                type="range"
+                id="range-brightness"
+                min="-100"
+                max="100"
+                value="0"
+                oninput="handleBrightnessContrast(this)"
+            >
+
+            <span id="val-brightness">0</span>
+
+        </div>
+    </div>
+
+    <!-- CONTRAST -->
+    <div class="control-group">
+
+        <label>Contrast</label>
+
+        <div class="slider-row">
+
+            <input
+                type="range"
+                id="range-contrast"
+                min="5"
+                max="30"
+                value="10"
+                oninput="handleBrightnessContrast(this)"
+            >
+
+            <span id="val-contrast">1.0</span>
+
+        </div>
+    </div>
 
             <p class="section-label" style="margin-top:20px;">JPEG Compression Simulation</p>
             <div class="control-group">
@@ -295,6 +323,61 @@
         const c = document.getElementById('range-contrast').value / 10;
         applyFilter('brightness_contrast', { brightness: b, contrast: c });
     }
+    // ======================================
+// UPDATE ANGKA SLIDER
+// ======================================
+
+function updateSliderVal(slider) {
+
+    // brightness
+    if(slider.id === "range-brightness") {
+
+        document.getElementById(
+            "val-brightness"
+        ).textContent = slider.value;
+    }
+
+    // contrast
+    if(slider.id === "range-contrast") {
+
+        document.getElementById(
+            "val-contrast"
+        ).textContent =
+            (slider.value / 10).toFixed(1);
+    }
+}
+
+
+// ======================================
+// REALTIME SLIDER
+// ======================================
+
+function handleBrightnessContrast(slider) {
+
+    // update angka
+    updateSliderVal(slider);
+
+    // ambil brightness
+    const brightness =
+        document.getElementById(
+            "range-brightness"
+        ).value;
+
+    // ambil contrast
+    const contrast =
+        document.getElementById(
+            "range-contrast"
+        ).value / 10;
+
+    // apply realtime
+    applyFilter(
+        "brightness_contrast",
+        {
+            brightness: brightness,
+            contrast: contrast
+        }
+    );
+}
 </script>
 </body>
 </html>
