@@ -8,183 +8,298 @@
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <style>
-        /* CSS Tambahan untuk Parameter Slider & Sub-Panel Dinamis */
         .control-group { margin-bottom: 14px; background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border); }
         .control-group label { display: block; font-size: 11px; text-transform: uppercase; color: var(--text-2); margin-bottom: 6px; font-weight: 600; }
         .slider-row { display: flex; align-items: center; gap: 10px; }
         .slider-row input[type="range"] { flex: 1; accent-color: var(--accent); }
-        .slider-row span { font-size: 11px; color: var(--accent); font-weight: 600; min-width: 24px; text-align: right; }
-        .btn-apply { width: 100%; background: var(--accent); color: #0e0e10; font-family: var(--font-display); font-weight: 700; font-size: 12px; padding: 8px; border-radius: 6px; margin-top: 8px; transition: 0.2s; }
+        .slider-row span { font-size: 11px; color: var(--accent); font-weight: 600; min-width: 36px; text-align: right; }
+        .btn-apply { width: 100%; background: var(--accent); color: #0e0e10; font-family: var(--font-display); font-weight: 700; font-size: 12px; padding: 8px; border-radius: 6px; margin-top: 8px; transition: 0.2s; cursor: pointer; border: none; }
         .btn-apply:hover { background: #c5ff70; transform: translateY(-1px); }
+        .btn-secondary { width: 100%; background: var(--bg-card); color: var(--text-2); font-family: var(--font-display); font-weight: 600; font-size: 12px; padding: 8px; border-radius: 6px; margin-top: 6px; transition: 0.2s; cursor: pointer; border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--bg-card-h); color: var(--text-1); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .hist-container { margin-top: 10px; text-align: center; background: #17171a; border-radius: var(--radius-md); padding: 8px; border: 1px solid var(--border); }
         .hist-container img { max-width: 100%; height: auto; border-radius: 4px; }
+        .input-field { width: 100%; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-1); padding: 7px 10px; border-radius: 6px; font-size: 12px; outline: none; font-family: var(--font-body); transition: border-color 0.2s; }
+        .input-field:focus { border-color: var(--accent); }
+        .input-label { font-size: 10px; color: var(--text-2); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px; }
+        .input-group { margin-bottom: 10px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .info-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 12px; }
+        .info-box p { font-size: 11px; color: var(--text-3); line-height: 1.5; }
+        .info-box i { color: var(--accent); margin-right: 4px; }
     </style>
 </head>
 <body>
 
 <div class="app-shell">
 
+    <!-- ICON RAIL -->
     <nav class="icon-rail">
         <div class="rail-logo"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
         <div class="rail-links">
             <a href="#" class="rail-btn active" data-tab="tab-dasar" data-tip="Dasar"><i class="fa-solid fa-layer-group"></i></a>
             <a href="#" class="rail-btn" data-tab="tab-adjust" data-tip="Adjust"><i class="fa-solid fa-sliders"></i></a>
-            <a href="#" class="rail-btn" data-tab="tab-filter" data-tip="Filter & Noise"><i class="fa-solid fa-wand-magic"></i></a>
+            <a href="#" class="rail-btn" data-tab="tab-filter" data-tip="Filter"><i class="fa-solid fa-wand-magic"></i></a>
             <a href="#" class="rail-btn" data-tab="tab-transform" data-tip="Transform"><i class="fa-solid fa-crop-simple"></i></a>
             <a href="#" class="rail-btn" data-tab="tab-histogram" data-tip="Histogram"><i class="fa-solid fa-chart-bar"></i></a>
+            <a href="#" class="rail-btn" data-tab="tab-text" data-tip="Teks"><i class="fa-solid fa-font"></i></a>
         </div>
         <div class="rail-bottom">
             <a href="/reset" class="rail-btn danger" data-tip="Reset"><i class="fa-solid fa-rotate-left"></i></a>
         </div>
     </nav>
 
+    <!-- TOOLS PANEL -->
     <aside class="tools-panel">
         <div class="panel-search">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" placeholder="Cari fitur...">
         </div>
 
+        <!-- TAB DASAR -->
         <div id="tab-dasar" class="tab-content active panel-section">
-            <p class="section-label">Fitur Citra Dasar</p>
+            <p class="section-label">Rekomendasi</p>
             <div class="tools-grid">
                 <div class="tool-card" onclick="applyFilter('grayscale')">
-                    <div class="card-thumb grayscale-thumb"><div class="thumb-split"><div class="split-color"></div><div class="split-gray"></div></div><div class="card-badge">Color</div></div>
+                    <div class="card-thumb grayscale-thumb">
+                        <div class="thumb-split"><div class="split-color"></div><div class="split-gray"></div></div>
+                        <div class="card-badge">Dasar</div>
+                    </div>
                     <span class="card-label">Grayscale</span>
                 </div>
-                <div class="tool-card" onclick="applyFilter('histogram_equalization')">
-                    <div class="card-thumb brightness-thumb"><div class="bright-gradient"></div><div class="card-badge">Enhance</div></div>
-                    <span class="card-label">Equalization</span>
+                <div class="tool-card" onclick="applyFilter('blur_filter', {type:'gaussian', kernel:9})">
+                    <div class="card-thumb blur-thumb">
+                        <div class="thumb-blur-demo"><div class="blur-circle c1"></div><div class="blur-circle c2"></div></div>
+                        <div class="card-badge">Dasar</div>
+                    </div>
+                    <span class="card-label">Smoothing</span>
                 </div>
                 <div class="tool-card" onclick="applyFilter('sharpening')">
-                    <div class="card-thumb sharp-thumb"><div class="sharp-lines"><div class="sline"></div><div class="sline"></div></div><div class="card-badge">Enhance</div></div>
+                    <div class="card-thumb sharp-thumb">
+                        <div class="sharp-lines"><div class="sline"></div><div class="sline"></div></div>
+                        <div class="card-badge">Dasar</div>
+                    </div>
                     <span class="card-label">Sharpening</span>
                 </div>
-                <div class="tool-card" onclick="applyFilter('cnn_detect')">
-                    <div class="card-thumb edge-thumb"><div class="edge-rect" style="border-color:#ff5252"></div><div class="card-badge">AI CNN</div></div>
-                    <span class="card-label">CNN Detect</span>
+                <div class="tool-card" onclick="applyFilter('edge_detection', {method:'canny'})">
+                    <div class="card-thumb edge-thumb">
+                        <div class="edge-rect" style="border-color:var(--accent)"></div>
+                        <div class="card-badge">Dasar</div>
+                    </div>
+                    <span class="card-label">Edge Canny</span>
                 </div>
             </div>
-            
-            <p class="section-label" style="margin-top:20px;">Channel Splitting</p>
+
+            <p class="section-label" style="margin-top:20px;">Adjust & Warna</p>
             <div class="tools-grid">
-                <button class="btn-apply" onclick="applyFilter('color_channel', {channel: 'R'})" style="background:#ff5252; color:white;">Red Channel</button>
-                <button class="btn-apply" onclick="applyFilter('color_channel', {channel: 'G'})" style="background:#4ade80; color:#0e0e10;">Green Channel</button>
-                <button class="btn-apply" onclick="applyFilter('color_channel', {channel: 'B'})" style="background:#38bdf8; color:white;">Blue Channel</button>
-            </div>
-        </div>
-
-      <div id="tab-adjust" class="tab-content panel-section">
-
-    <p class="section-label">Enhancement Slider</p>
-
-    <!-- BRIGHTNESS -->
-    <div class="control-group">
-
-        <label>Brightness</label>
-
-        <div class="slider-row">
-
-            <input
-                type="range"
-                id="range-brightness"
-                min="-100"
-                max="100"
-                value="0"
-                oninput="handleBrightnessContrast(this)"
-            >
-
-            <span id="val-brightness">0</span>
-
-        </div>
-    </div>
-
-    <!-- CONTRAST -->
-    <div class="control-group">
-
-        <label>Contrast</label>
-
-        <div class="slider-row">
-
-            <input
-                type="range"
-                id="range-contrast"
-                min="5"
-                max="30"
-                value="10"
-                oninput="handleBrightnessContrast(this)"
-            >
-
-            <span id="val-contrast">1.0</span>
-
-        </div>
-    </div>
-
-            <p class="section-label" style="margin-top:20px;">JPEG Compression Simulation</p>
-            <div class="control-group">
-                <label>Kualitas File (%)</label>
-                <div class="slider-row">
-                    <input type="range" id="range-compress" min="5" max="100" value="80" oninput="updateSliderVal(this)">
-                    <span id="val-compress">80</span>
+                <div class="tool-card" onclick="switchTab('tab-adjust')">
+                    <div class="card-thumb brightness-thumb">
+                        <div class="bright-gradient"></div>
+                        <div class="card-badge">Adjust</div>
+                    </div>
+                    <span class="card-label">Brightness</span>
+                </div>
+                <div class="tool-card" onclick="switchTab('tab-adjust')">
+                    <div class="card-thumb contrast-thumb">
+                        <div class="contrast-half h1"></div><div class="contrast-half h2"></div>
+                        <div class="card-badge">Adjust</div>
+                    </div>
+                    <span class="card-label">Contrast</span>
+                </div>
+                <div class="tool-card" onclick="switchTab('tab-adjust')">
+                    <div class="card-thumb saturation-thumb">
+                        <div class="sat-ring r1"></div><div class="sat-ring r2"></div>
+                        <div class="card-badge">Adjust</div>
+                    </div>
+                    <span class="card-label">Saturation</span>
+                </div>
+                <div class="tool-card" onclick="switchTab('tab-adjust')">
+                    <div class="card-thumb hue-thumb">
+                        <div class="hue-wheel"></div>
+                        <div class="card-badge">Adjust</div>
+                    </div>
+                    <span class="card-label">Hue Rotate</span>
                 </div>
             </div>
-            <button class="btn-apply" onclick="applyFilter('compress', {quality: document.getElementById('range-compress').value})">Simulasikan Kompresi</button>
+
+            <p class="section-label" style="margin-top:20px;">Transform</p>
+            <div class="tools-grid">
+                <div class="tool-card" onclick="switchTab('tab-transform')">
+                    <div class="card-thumb crop-thumb" style="display:flex;align-items:center;justify-content:center;">
+                        <i class="fa-solid fa-crop-simple crop-icon-demo" style="font-size:26px;"></i>
+                        <div class="card-badge">Transform</div>
+                    </div>
+                    <span class="card-label">Crop</span>
+                </div>
+                <div class="tool-card" onclick="switchTab('tab-transform')">
+                    <div class="card-thumb rotate-thumb" style="display:flex;align-items:center;justify-content:center;">
+                        <i class="fa-solid fa-rotate-right rotate-icon-demo" style="font-size:26px;"></i>
+                        <div class="card-badge">Transform</div>
+                    </div>
+                    <span class="card-label">Rotate</span>
+                </div>
+            </div>
         </div>
 
+        <!-- TAB ADJUST -->
+        <div id="tab-adjust" class="tab-content panel-section">
+            <p class="section-label">Adjust & Warna</p>
+
+            <div class="control-group">
+                <label>Brightness</label>
+                <div class="slider-row">
+                    <input type="range" id="range-brightness" min="-100" max="100" value="0"
+                        oninput="handleBrightnessContrast(this)">
+                    <span id="val-brightness">0</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Contrast</label>
+                <div class="slider-row">
+                    <input type="range" id="range-contrast" min="5" max="30" value="10"
+                        oninput="handleBrightnessContrast(this)">
+                    <span id="val-contrast">1.0</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Saturation</label>
+                <div class="slider-row">
+                    <input type="range" id="range-saturation" min="0" max="30" value="10" step="1"
+                        oninput="document.getElementById('val-saturation').textContent=(this.value/10).toFixed(1); applyFilter('saturation',{value:this.value/10})">
+                    <span id="val-saturation">1.0</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Hue Rotate</label>
+                <div class="slider-row">
+                    <input type="range" id="range-hue" min="0" max="180" value="0"
+                        oninput="document.getElementById('val-hue').textContent=this.value+'°'; applyFilter('hue_rotate',{angle:this.value})">
+                    <span id="val-hue">0°</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB FILTER -->
         <div id="tab-filter" class="tab-content panel-section">
             <p class="section-label">Smoothing & Restoration</p>
             <div class="tools-grid">
-                <div class="tool-card" onclick="applyFilter('blur_filter', {type: 'gaussian', kernel: 9})">
-                    <span class="card-label"><i class="fa-solid fa-eye-slash"></i> Gaussian Blur</span>
+                <div class="tool-card" onclick="applyFilter('blur_filter', {type:'gaussian', kernel:9})">
+                    <div class="card-thumb blur-thumb">
+                        <div class="thumb-blur-demo"><div class="blur-circle c1"></div><div class="blur-circle c2"></div></div>
+                        <div class="card-badge">Filter</div>
+                    </div>
+                    <span class="card-label">Gaussian Blur</span>
                 </div>
-                <div class="tool-card" onclick="applyFilter('blur_filter', {type: 'median', kernel: 5})">
-                    <span class="card-label"><i class="fa-solid fa-filter"></i> Median Filter</span>
+                <div class="tool-card" onclick="applyFilter('blur_filter', {type:'median', kernel:5})">
+                    <div class="card-thumb blur-thumb">
+                        <div class="thumb-blur-demo"><div class="blur-circle c1"></div><div class="blur-circle c2"></div></div>
+                        <div class="card-badge">Filter</div>
+                    </div>
+                    <span class="card-label">Median Filter</span>
                 </div>
             </div>
 
-            <p class="section-label" style="margin-top:20px;">Binary & Edge Processing</p>
-            <div class="tools-grid">
-                <button class="btn-apply" onclick="applyFilter('edge_detection', {method: 'canny'})">Canny Edge</button>
-                <button class="btn-apply" onclick="applyFilter('edge_detection', {method: 'sobel'})">Sobel Edge</button>
-                <button class="btn-apply" onclick="applyFilter('edge_detection', {method: 'laplacian'})">Laplacian</button>
+            <p class="section-label" style="margin-top:20px;">Edge Detection</p>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <button class="btn-apply" onclick="applyFilter('edge_detection', {method:'canny'})">Canny Edge</button>
+                <button class="btn-apply" onclick="applyFilter('edge_detection', {method:'sobel'})">Sobel Edge</button>
+                <button class="btn-apply" onclick="applyFilter('edge_detection', {method:'laplacian'})">Laplacian</button>
             </div>
 
             <p class="section-label" style="margin-top:20px;">Morfologi Biner</p>
-            <div class="tools-grid">
-                <button class="btn-apply" onclick="applyFilter('morphology', {type: 'erosion', kernel: 3})">Erosi</button>
-                <button class="btn-apply" onclick="applyFilter('morphology', {type: 'dilation', kernel: 3})">Dilatasi</button>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <button class="btn-apply" onclick="applyFilter('morphology', {type:'erosion', kernel:3})">Erosi</button>
+                <button class="btn-apply" onclick="applyFilter('morphology', {type:'dilation', kernel:3})">Dilatasi</button>
             </div>
         </div>
 
+        <!-- TAB TRANSFORM -->
         <div id="tab-transform" class="tab-content panel-section">
-            <p class="section-label">Rotasi Matriks Affine</p>
+
+            <p class="section-label">Crop Manual</p>
+            <div class="info-box">
+                <p><i class="fa-solid fa-circle-info"></i>Isi koordinat area yang ingin di-crop. X/Y = titik sudut kiri atas, W = lebar, H = tinggi (dalam piksel).</p>
+            </div>
+            <div style="background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px; margin-bottom:10px;">
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label class="input-label">X (kiri)</label>
+                        <input type="number" id="crop-x" value="0" min="0" class="input-field">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Y (atas)</label>
+                        <input type="number" id="crop-y" value="0" min="0" class="input-field">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Lebar (W)</label>
+                        <input type="number" id="crop-w" value="200" min="1" class="input-field">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Tinggi (H)</label>
+                        <input type="number" id="crop-h" value="200" min="1" class="input-field">
+                    </div>
+                </div>
+                <button class="btn-apply" style="margin-top:4px;" onclick="applyCropManual()">
+                    <i class="fa-solid fa-crop-simple"></i> Crop Sekarang
+                </button>
+                <button class="btn-secondary" onclick="applyFilter('crop_center')">
+                    <i class="fa-solid fa-compress"></i> Crop Tengah Otomatis
+                </button>
+            </div>
+
+            <p class="section-label" style="margin-top:8px;">Rotasi</p>
             <div class="control-group">
-                <label>Derajat (0°–360°)</label>
+                <label>Derajat (0° – 360°)</label>
                 <div class="slider-row">
-                    <input type="range" id="range-rotate" min="0" max="360" value="0" oninput="updateSliderVal(this)">
+                    <input type="range" id="range-rotate" min="0" max="360" value="0"
+                        oninput="document.getElementById('val-rotate').textContent=this.value+'°'">
                     <span id="val-rotate">0°</span>
                 </div>
             </div>
-            <button class="btn-apply" onclick="applyFilter('rotate', {angle: document.getElementById('range-rotate').value})">Putar Gambar</button>
+            <button class="btn-apply" onclick="applyFilter('rotate', {angle: parseInt(document.getElementById('range-rotate').value)})">
+                <i class="fa-solid fa-rotate-right"></i> Putar Gambar
+            </button>
 
             <p class="section-label" style="margin-top:20px;">Geometri Cepat</p>
             <div class="tools-grid">
-                <button class="btn-apply" onclick="applyFilter('flip', {direction: 'horizontal'})"><i class="fa-solid fa-arrows-left-right"></i> Flip Horisontal</button>
-                <button class="btn-apply" onclick="applyFilter('flip', {direction: 'vertical'})"><i class="fa-solid fa-arrows-up-down"></i> Flip Vertikal</button>
+                <button class="btn-apply" onclick="applyFilter('flip', {direction:'horizontal'})">
+                    <i class="fa-solid fa-arrows-left-right"></i> Flip H
+                </button>
+                <button class="btn-apply" onclick="applyFilter('flip', {direction:'vertical'})">
+                    <i class="fa-solid fa-arrows-up-down"></i> Flip V
+                </button>
             </div>
+
             <div class="control-group" style="margin-top:14px;">
                 <label>Skala Ukuran (%)</label>
                 <div class="slider-row">
-                    <input type="range" id="range-resize" min="10" max="200" value="100" oninput="updateSliderVal(this)">
+                    <input type="range" id="range-resize" min="10" max="200" value="100"
+                        oninput="document.getElementById('val-resize').textContent=this.value+'%'">
                     <span id="val-resize">100%</span>
                 </div>
             </div>
-            <button class="btn-apply" onclick="applyFilter('resize', {scale: document.getElementById('range-resize').value})">Ubah Ukuran Citra</button>
+            <button class="btn-apply" onclick="applyFilter('resize', {scale: parseInt(document.getElementById('range-resize').value)})">
+                Ubah Ukuran
+            </button>
+
+            <p class="section-label" style="margin-top:20px;">Channel Splitting</p>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <button class="btn-apply" onclick="applyFilter('color_channel', {channel:'R'})"
+                    style="background:#ff5252; color:white; margin-top:0;">Red Channel</button>
+                <button class="btn-apply" onclick="applyFilter('color_channel', {channel:'G'})"
+                    style="background:#4ade80; color:#0e0e10; margin-top:0;">Green Channel</button>
+                <button class="btn-apply" onclick="applyFilter('color_channel', {channel:'B'})"
+                    style="background:#38bdf8; color:white; margin-top:0;">Blue Channel</button>
+            </div>
         </div>
 
+        <!-- TAB HISTOGRAM -->
         <div id="tab-histogram" class="tab-content panel-section">
             <p class="section-label">Histogram Before</p>
             <div class="hist-container">
@@ -203,20 +318,90 @@
                 {% endif %}
             </div>
         </div>
+
+        <!-- TAB TEXT -->
+        <div id="tab-text" class="tab-content panel-section">
+            <p class="section-label">Tambah Teks ke Gambar</p>
+
+            <div class="info-box">
+                <p><i class="fa-solid fa-circle-info"></i>Ketik teks, atur ukuran dan warna, lalu tentukan posisi X/Y pada gambar (piksel dari sudut kiri atas).</p>
+            </div>
+
+            <div style="background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px;">
+
+                <div class="input-group">
+                    <label class="input-label">Isi Teks</label>
+                    <input type="text" id="input-text" placeholder="Ketik teks di sini..." class="input-field">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Ukuran Font</label>
+                    <div class="slider-row">
+                        <input type="range" id="range-fontsize" min="10" max="120" value="32"
+                            oninput="document.getElementById('val-fontsize').textContent=this.value+'px'">
+                        <span id="val-fontsize">32px</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Warna Teks</label>
+                    <div style="display:flex; gap:10px; align-items:center; margin-top:4px;">
+                        <input type="color" id="input-textcolor" value="#ffffff"
+                            style="width:44px; height:36px; border:2px solid var(--border); border-radius:8px; cursor:pointer; background:none; padding:2px;">
+                        <div>
+                            <p style="font-size:11px; color:var(--text-2); font-weight:600;">Pilih Warna</p>
+                            <p style="font-size:10px; color:var(--text-3);">Klik kotak untuk membuka color picker</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-top:4px;">
+                    <label class="input-label">Posisi pada Gambar</label>
+                    <div class="grid-2" style="margin-top:4px;">
+                        <div>
+                            <label class="input-label" style="font-size:9px;">X (horizontal)</label>
+                            <input type="number" id="text-x" value="20" min="0" class="input-field">
+                        </div>
+                        <div>
+                            <label class="input-label" style="font-size:9px;">Y (vertikal)</label>
+                            <input type="number" id="text-y" value="50" min="0" class="input-field">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-apply" style="margin-top:8px;" onclick="applyAddText()">
+                    <i class="fa-solid fa-font"></i> Tambahkan Teks ke Gambar
+                </button>
+
+            </div>
+        </div>
+
     </aside>
 
+    <!-- WORKSPACE -->
     <main class="workspace">
         <header class="top-bar">
             <div class="topbar-left">
                 <span class="brand-name">Pixel<span class="accent">Lab</span></span>
-                <div class="file-info"><i class="fa-regular fa-file-image"></i><span>Mini Photoshop</span></div>
+                <div class="file-info">
+                    <i class="fa-regular fa-file-image"></i>
+                    <span>Mini Photoshop</span>
+                </div>
             </div>
             <div class="topbar-right">
+                <button class="btn-icon-only" title="Zoom In"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                <button class="btn-icon-only" title="Zoom Out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                <button class="btn-icon-only" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
+                <button class="btn-icon-only" title="Redo"><i class="fa-solid fa-rotate-right"></i></button>
                 <div class="divider-v"></div>
                 {% if processed_image %}
-                <a href="/download" style="text-decoration: none;"><button class="btn-download"><i class="fa-solid fa-download"></i> Simpan Gambar</button></a>
+                <a href="/download" style="text-decoration:none;">
+                    <button class="btn-download"><i class="fa-solid fa-download"></i> Simpan Gambar</button>
+                </a>
                 {% else %}
-                <button class="btn-download" style="opacity: 0.5; cursor: not-allowed;" disabled><i class="fa-solid fa-download"></i> Simpan Gambar</button>
+                <button class="btn-download" style="opacity:0.5; cursor:not-allowed;" disabled>
+                    <i class="fa-solid fa-download"></i> Simpan Gambar
+                </button>
                 {% endif %}
             </div>
         </header>
@@ -225,70 +410,102 @@
             {% if not original_image %}
             <div class="upload-state" id="uploadState">
                 <div class="upload-card">
-                    <div class="upload-icon-ring"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                    <div class="upload-icon-ring">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
                     <h2>Unggah foto untuk mulai mengedit</h2>
                     <p>Mendukung format JPG, PNG, atau BMP · Maks 20MB</p>
                     <form action="/upload" method="post" enctype="multipart/form-data" id="uploadForm">
-                        <label for="fileInput" class="btn-upload-primary"><i class="fa-solid fa-plus"></i> Upload Gambar</label>
-                        <input type="file" id="fileInput" name="image" accept="image/*" onchange="document.getElementById('uploadForm').submit()" style="display:none;">
+                        <label for="fileInput" class="btn-upload-primary">
+                            <i class="fa-solid fa-plus"></i> Upload Gambar
+                        </label>
+                        <input type="file" id="fileInput" name="image" accept="image/*"
+                            onchange="document.getElementById('uploadForm').submit()" style="display:none;">
                     </form>
+                    <div class="sample-section">
+                        <p class="sample-hint">Atau coba gambar sampel:</p>
+                        <div class="sample-thumbs">
+                            <div class="sample-img s1" onclick="window.location.href='/load_sample?color=green'" title="Hijau"></div>
+                            <div class="sample-img s2" onclick="window.location.href='/load_sample?color=purple'" title="Ungu"></div>
+                            <div class="sample-img s3" onclick="window.location.href='/load_sample?color=blue'" title="Biru"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="floating-pills">
+                    <div class="pill" onclick="document.getElementById('fileInput').click()">
+                        <i class="fa-solid fa-image"></i> Grayscale
+                    </div>
+                    <div class="pill" onclick="document.getElementById('fileInput').click()">
+                        <i class="fa-solid fa-droplet"></i> Blur
+                    </div>
+                    <div class="pill" onclick="document.getElementById('fileInput').click()">
+                        <i class="fa-solid fa-border-all"></i> Edge Detection
+                    </div>
+                    <div class="pill" onclick="document.getElementById('fileInput').click()">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Sharpening
+                    </div>
                 </div>
             </div>
             {% else %}
             <div class="preview-state">
                 <div class="preview-label-row">
                     <span class="preview-badge original">Sebelum (Original)</span>
-                    <div class="zoom-info" id="status-loading">Review Mode Actived</div>
+                    <div class="zoom-info" id="status-loading">Siap diproses</div>
                     <span class="preview-badge processed">Sesudah (Hasil Edit)</span>
                 </div>
                 <div class="preview-panels">
-                    <div class="panel-box"><div class="image-frame"><img src="/{{ original_image }}" alt="Original"></div></div>
+                    <div class="panel-box">
+                        <div class="image-frame">
+                            <img src="/{{ original_image }}" alt="Original">
+                        </div>
+                    </div>
                     <div class="panel-divider"><i class="fa-solid fa-arrows-left-right"></i></div>
-                    <div class="panel-box"><div class="image-frame"><img id="display-processed" src="/{{ processed_image }}?t={{ range(1, 9999) | random }}" alt="Processed"></div></div>
+                    <div class="panel-box">
+                        <div class="image-frame">
+                            <img id="display-processed"
+                                src="/{{ processed_image }}?t={{ range(1, 9999) | random }}"
+                                alt="Processed">
+                        </div>
+                    </div>
                 </div>
             </div>
             {% endif %}
         </div>
 
         <footer class="status-bar">
-            <span><i class="fa-solid fa-circle-check" style="color:#4ade80"></i> Python-Flask Engine Online</span>
+            <span><i class="fa-solid fa-circle-check" style="color:#4ade80"></i> Siap diproses</span>
             <span>Digital Image Processing</span>
         </footer>
     </main>
 </div>
 
 <script>
-    // Logika Alih Tab Menu (Icon Rail)
+    // =============================================
+    // TAB SWITCHING
+    // =============================================
     document.querySelectorAll('.rail-btn[data-tab]').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            
-            btn.classList.add('active');
-            document.getElementById(btn.dataset.tab).classList.add('active');
+            switchTab(btn.dataset.tab);
         });
     });
 
-    // Mengubah angka label dari nilai slider secara interaktif
-    function updateSliderVal(slider) {
-        const idLabel = slider.id.replace('range-', 'val-');
-        let suffix = "";
-        if(slider.id.includes('rotate')) suffix = "°";
-        if(slider.id.includes('resize')) suffix = "%";
-        
-        if(slider.id.includes('contrast')) {
-            document.getElementById(idLabel).textContent = (slider.value / 10).toFixed(1);
-        } else {
-            document.getElementById(idLabel).textContent = slider.value + suffix;
-        }
+    function switchTab(tabId) {
+        document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        const targetTab = document.getElementById(tabId);
+        if (targetTab) targetTab.classList.add('active');
+        const targetBtn = document.querySelector(`.rail-btn[data-tab="${tabId}"]`);
+        if (targetBtn) targetBtn.classList.add('active');
     }
 
-    // Fungsi pengiriman AJAX utama ke server Flask
+    // =============================================
+    // AJAX FILTER UTAMA
+    // =============================================
     function applyFilter(actionName, parameterObject = {}) {
         const statusNode = document.getElementById('status-loading');
-        if(statusNode) statusNode.textContent = "Sedang Memproses Citra...";
-        
+        if (statusNode) statusNode.textContent = "Sedang memproses...";
+
         fetch('/api/process', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -296,89 +513,77 @@
         })
         .then(res => res.json())
         .then(data => {
-            if(data.processed_image) {
-                // Menambahkan anti-cache timestamp agar gambar langsung disegarkan di halaman web
+            if (data.processed_image) {
                 const d = new Date();
                 const imageNode = document.getElementById('display-processed');
-                if(imageNode) imageNode.src = "/" + data.processed_image + "?t=" + d.getTime();
-                
-                if(statusNode) statusNode.textContent = "Proses Selesai";
-                
-                // Jika tab histogram sedang aktif, segarkan gambar grafik statistiknya
-                if(data.reload_hist) {
+                if (imageNode) imageNode.src = "/" + data.processed_image + "?t=" + d.getTime();
+                if (statusNode) statusNode.textContent = "Proses selesai ✓";
+                if (data.reload_hist) {
                     const hO = document.getElementById('img-hist-ori');
                     const hP = document.getElementById('img-hist-proc');
-                    if(hO) hO.src = "/static/outputs/hist_ori.png?t=" + d.getTime();
-                    if(hP) hP.src = "/static/outputs/hist_proc.png?t=" + d.getTime();
+                    if (hO) hO.src = "/static/outputs/hist_ori.png?t=" + d.getTime();
+                    if (hP) hP.src = "/static/outputs/hist_proc.png?t=" + d.getTime();
                 }
+            } else if (data.error) {
+                if (statusNode) statusNode.textContent = "Error: " + data.error;
             }
         })
         .catch(err => {
-            if(statusNode) statusNode.textContent = "Error Terjadi!";
+            if (statusNode) statusNode.textContent = "Koneksi error!";
             console.error(err);
         });
     }
 
-    function applyBrightnessContrast() {
-        const b = document.getElementById('range-brightness').value;
-        const c = document.getElementById('range-contrast').value / 10;
-        applyFilter('brightness_contrast', { brightness: b, contrast: c });
-    }
-    // ======================================
-// UPDATE ANGKA SLIDER
-// ======================================
-
-function updateSliderVal(slider) {
-
-    // brightness
-    if(slider.id === "range-brightness") {
-
-        document.getElementById(
-            "val-brightness"
-        ).textContent = slider.value;
-    }
-
-    // contrast
-    if(slider.id === "range-contrast") {
-
-        document.getElementById(
-            "val-contrast"
-        ).textContent =
-            (slider.value / 10).toFixed(1);
-    }
-}
-
-
-// ======================================
-// REALTIME SLIDER
-// ======================================
-
-function handleBrightnessContrast(slider) {
-
-    // update angka
-    updateSliderVal(slider);
-
-    // ambil brightness
-    const brightness =
-        document.getElementById(
-            "range-brightness"
-        ).value;
-
-    // ambil contrast
-    const contrast =
-        document.getElementById(
-            "range-contrast"
-        ).value / 10;
-
-    // apply realtime
-    applyFilter(
-        "brightness_contrast",
-        {
-            brightness: brightness,
-            contrast: contrast
+    // =============================================
+    // CROP MANUAL
+    // =============================================
+    function applyCropManual() {
+        const x = parseInt(document.getElementById('crop-x').value) || 0;
+        const y = parseInt(document.getElementById('crop-y').value) || 0;
+        const w = parseInt(document.getElementById('crop-w').value) || 200;
+        const h = parseInt(document.getElementById('crop-h').value) || 200;
+        if (w <= 0 || h <= 0) {
+            alert('Lebar dan tinggi harus lebih dari 0!');
+            return;
         }
-    );
-}
+        applyFilter('crop_manual', { x: x, y: y, w: w, h: h });
+    }
+
+    // =============================================
+    // TAMBAH TEKS
+    // =============================================
+    function applyAddText() {
+        const text = document.getElementById('input-text').value.trim();
+        if (!text) {
+            alert('Teks tidak boleh kosong!');
+            document.getElementById('input-text').focus();
+            return;
+        }
+        const size  = parseInt(document.getElementById('range-fontsize').value) || 32;
+        const x     = parseInt(document.getElementById('text-x').value) || 20;
+        const y     = parseInt(document.getElementById('text-y').value) || 50;
+        const color = document.getElementById('input-textcolor').value || '#ffffff';
+        applyFilter('add_text', { text: text, size: size, x: x, y: y, color: color });
+    }
+
+    // =============================================
+    // BRIGHTNESS & CONTRAST SLIDER
+    // =============================================
+    function updateSliderVal(slider) {
+        if (slider.id === "range-brightness") {
+            document.getElementById("val-brightness").textContent = slider.value;
+        }
+        if (slider.id === "range-contrast") {
+            document.getElementById("val-contrast").textContent = (slider.value / 10).toFixed(1);
+        }
+    }
+
+    function handleBrightnessContrast(slider) {
+        updateSliderVal(slider);
+        const brightness = document.getElementById("range-brightness").value;
+        const contrast   = document.getElementById("range-contrast").value / 10;
+        applyFilter("brightness_contrast", { brightness: brightness, contrast: contrast });
+    }
 </script>
 </body>
 </html>
