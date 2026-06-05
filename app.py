@@ -184,6 +184,20 @@ def undo():
         'can_undo': can_undo
     })
 
+@app.route('/api/reset_to_original', methods=['POST'])
+def reset_to_original():
+    if image_state['original'] is None:
+        return jsonify({'error': 'Belum ada gambar'}), 400
+    image_state['history'].append(image_state['current'].copy())
+    image_state['current'] = image_state['original'].copy()
+    current_b64 = numpy_to_base64(image_state['current'])
+    hist_b64    = generate_histogram_base64(image_state['current'])
+    return jsonify({
+        'processed_image': current_b64,
+        'hist_proc': hist_b64,
+        'can_undo': True
+    })
+
 # =============================================
 # API — PROSES GAMBAR (STACKING)
 # =============================================

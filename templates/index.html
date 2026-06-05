@@ -197,7 +197,7 @@
 
             <p class="section-label" style="margin-top:20px;">Transform</p>
             <div class="tools-grid">
-                <div class="tool-card" onclick="startCropMode()">
+                <div class="tool-card" onclick="switchTab('tab-transform')">
                     <div class="card-thumb crop-thumb" style="display:flex;align-items:center;justify-content:center;">
                         <i class="fa-solid fa-crop-simple crop-icon-demo" style="font-size:26px;"></i>
                         <div class="card-badge">Transform</div>
@@ -400,22 +400,29 @@
                     <span>Mini Photoshop</span>
                 </div>
             </div>
-            <div class="topbar-right">
-                <button class="btn-icon-only {% if can_undo %}has-history{% endif %}"
-                    id="undo-btn" title="Undo" onclick="doUndo()">
-                    <i class="fa-solid fa-rotate-left"></i>
-                </button>
-                <div class="divider-v"></div>
-                {% if processed_image %}
-                <a href="/download" style="text-decoration:none;">
-                    <button class="btn-download"><i class="fa-solid fa-download"></i> Simpan Gambar</button>
-                </a>
-                {% else %}
-                <button class="btn-download" style="opacity:0.5;cursor:not-allowed;" disabled>
-                    <i class="fa-solid fa-download"></i> Simpan Gambar
-                </button>
-                {% endif %}
-            </div>
+           <div class="topbar-right">
+    <button class="btn-icon-only {% if can_undo %}has-history{% endif %}"
+        id="undo-btn" title="Undo perubahan terakhir" onclick="doUndo()"
+        style="display:flex;align-items:center;gap:5px;padding:0 10px;width:auto;">
+        <i class="fa-solid fa-rotate-left"></i>
+        <span style="font-size:11px;font-weight:600;">Undo</span>
+    </button>
+    <button class="btn-icon-only" title="Kembali ke gambar awal" onclick="doResetToOriginal()"
+        style="display:flex;align-items:center;gap:5px;padding:0 10px;width:auto;">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        <span style="font-size:11px;font-weight:600;">Reset Edit</span>
+    </button>
+    <div class="divider-v"></div>
+    {% if processed_image %}
+    <a href="/download" style="text-decoration:none;">
+        <button class="btn-download"><i class="fa-solid fa-download"></i> Simpan Gambar</button>
+    </a>
+    {% else %}
+    <button class="btn-download" style="opacity:0.5;cursor:not-allowed;" disabled>
+        <i class="fa-solid fa-download"></i> Simpan Gambar
+    </button>
+    {% endif %}
+</div>
         </header>
 
         <div class="canvas-zone" id="canvasZone">
@@ -578,6 +585,25 @@ function doUndo() {
         }
         updateUndoBtn(data.can_undo);
         setStatus('done');
+    })
+    .catch(err => { setStatus('error', 'Koneksi error'); console.error(err); });
+}
+
+function doResetToOriginal() {
+    if (!confirm('Kembalikan ke gambar awal? Semua edit akan hilang.')) return;
+    setStatus('processing');
+    fetch('/api/reset_to_original', { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) { setStatus('error', data.error); return; }
+        updateProcessed(data.processed_image);
+        if (data.hist_proc) {
+            const hp = document.getElementById('img-hist-proc');
+            if (hp) hp.src = data.hist_proc;
+        }
+        updateUndoBtn(false);
+        setStatus('done');
+        document.getElementById('status-loading').textContent = 'Dikembalikan ke gambar awal ✓';
     })
     .catch(err => { setStatus('error', 'Koneksi error'); console.error(err); });
 }
