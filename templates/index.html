@@ -31,87 +31,32 @@
         .info-box p { font-size: 11px; color: var(--text-3); line-height: 1.5; }
         .info-box i { color: var(--accent); margin-right: 4px; }
 
-        /* ── CROP OVERLAY ── */
-        .canvas-wrapper {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-        }
-        #crop-overlay {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            cursor: crosshair;
-            z-index: 10;
-            display: none;
-        }
+        /* CROP OVERLAY */
+        .canvas-wrapper { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+        #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; z-index: 10; display: none; }
         #crop-overlay.active { display: block; }
-        #crop-selection {
-            position: absolute;
-            border: 2px dashed var(--accent);
-            background: rgba(168,255,87,0.08);
-            pointer-events: none;
-            display: none;
-            box-shadow: 0 0 0 9999px rgba(0,0,0,0.45);
-        }
-        .crop-toolbar {
-            position: absolute;
-            bottom: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: none;
-            gap: 8px;
-            z-index: 20;
-        }
+        #crop-selection { position: absolute; border: 2px dashed var(--accent); background: rgba(168,255,87,0.08); pointer-events: none; display: none; box-shadow: 0 0 0 9999px rgba(0,0,0,0.45); }
+        .crop-toolbar { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: none; gap: 8px; z-index: 20; }
         .crop-toolbar.visible { display: flex; }
-        .crop-btn {
-            padding: 7px 18px;
-            border-radius: 99px;
-            font-family: var(--font-display);
-            font-weight: 700;
-            font-size: 12px;
-            cursor: pointer;
-            border: none;
-            transition: 0.2s;
-        }
+        .crop-btn { padding: 7px 18px; border-radius: 99px; font-family: var(--font-display); font-weight: 700; font-size: 12px; cursor: pointer; border: none; transition: 0.2s; }
         .crop-btn.confirm { background: var(--accent); color: #0e0e10; }
         .crop-btn.confirm:hover { background: #c5ff70; }
-        .crop-btn.cancel  { background: var(--bg-card); color: var(--text-2); border: 1px solid var(--border); }
-        .crop-btn.cancel:hover  { background: var(--bg-card-h); color: var(--text-1); }
+        .crop-btn.cancel { background: var(--bg-card); color: var(--text-2); border: 1px solid var(--border); }
+        .crop-btn.cancel:hover { background: var(--bg-card-h); color: var(--text-1); }
 
-        /* ── TEXT DRAG OVERLAY ── */
-        #text-overlay {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            cursor: crosshair;
-            z-index: 10;
-            display: none;
-        }
+        /* TEXT OVERLAY */
+        #text-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; z-index: 10; display: none; }
         #text-overlay.active { display: block; }
-        #text-preview {
-            position: absolute;
-            pointer-events: none;
-            font-family: 'Arial', sans-serif;
-            font-weight: bold;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.8);
-            white-space: nowrap;
-            display: none;
-            z-index: 15;
-            transform: translate(-50%, -50%);
-        }
+        #text-preview { position: absolute; pointer-events: none; font-family: 'Arial', sans-serif; font-weight: bold; text-shadow: 2px 2px 0 rgba(0,0,0,0.8); white-space: nowrap; display: none; z-index: 15; transform: translate(-50%, -50%); }
 
-        /* ── UNDO BADGE ── */
+        /* UNDO */
         #undo-btn { position: relative; }
         #undo-btn.has-history { color: var(--accent) !important; }
 
-        /* ── STATUS ── */
+        /* STATUS */
         .status-processing { color: var(--orange) !important; }
-        .status-done       { color: var(--accent) !important; }
-        .status-error      { color: var(--red) !important; }
+        .status-done { color: var(--accent) !important; }
+        .status-error { color: var(--red) !important; }
     </style>
 </head>
 <body>
@@ -122,12 +67,13 @@
     <nav class="icon-rail">
         <div class="rail-logo"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
         <div class="rail-links">
-            <a href="#" class="rail-btn active" data-tab="tab-dasar"     data-tip="Dasar"><i class="fa-solid fa-layer-group"></i></a>
-            <a href="#" class="rail-btn"         data-tab="tab-adjust"    data-tip="Adjust"><i class="fa-solid fa-sliders"></i></a>
-            <a href="#" class="rail-btn"         data-tab="tab-filter"    data-tip="Filter"><i class="fa-solid fa-wand-magic"></i></a>
-            <a href="#" class="rail-btn"         data-tab="tab-transform" data-tip="Transform"><i class="fa-solid fa-crop-simple"></i></a>
-            <a href="#" class="rail-btn"         data-tab="tab-histogram" data-tip="Histogram"><i class="fa-solid fa-chart-bar"></i></a>
-            <a href="#" class="rail-btn"         data-tab="tab-text"      data-tip="Teks"><i class="fa-solid fa-font"></i></a>
+            <a href="#" class="rail-btn active" data-tab="tab-dasar"       data-tip="Dasar"><i class="fa-solid fa-layer-group"></i></a>
+            <a href="#" class="rail-btn"         data-tab="tab-adjust"      data-tip="Adjust"><i class="fa-solid fa-sliders"></i></a>
+            <a href="#" class="rail-btn"         data-tab="tab-filter"      data-tip="Filter"><i class="fa-solid fa-wand-magic"></i></a>
+            <a href="#" class="rail-btn"         data-tab="tab-transform"   data-tip="Transform"><i class="fa-solid fa-crop-simple"></i></a>
+            <a href="#" class="rail-btn"         data-tab="tab-segmentasi"  data-tip="Segmentasi"><i class="fa-solid fa-object-group"></i></a>
+            <a href="#" class="rail-btn"         data-tab="tab-histogram"   data-tip="Histogram"><i class="fa-solid fa-chart-bar"></i></a>
+            <a href="#" class="rail-btn"         data-tab="tab-text"        data-tip="Teks"><i class="fa-solid fa-font"></i></a>
         </div>
         <div class="rail-bottom">
             <a href="/reset" class="rail-btn danger" data-tip="Reset"><i class="fa-solid fa-rotate-left"></i></a>
@@ -247,6 +193,12 @@
                     <span id="val-hue">0°</span>
                 </div>
             </div>
+            <p class="section-label" style="margin-top:20px;">Enhancement</p>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <button class="btn-apply" onclick="applyFilter('histogram_equalization')">
+                    <i class="fa-solid fa-chart-area"></i> Histogram Equalization
+                </button>
+            </div>
         </div>
 
         <!-- TAB FILTER -->
@@ -268,13 +220,50 @@
                     <span class="card-label">Median Filter</span>
                 </div>
             </div>
+
+            <p class="section-label" style="margin-top:20px;">Noise</p>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <button class="btn-apply" onclick="applyFilter('noise_saltpepper',{amount:0.02})">
+                    <i class="fa-solid fa-spray-can"></i> Tambah Salt & Pepper
+                </button>
+                <button class="btn-apply" onclick="applyFilter('noise_removal_sp',{kernel:3})">
+                    <i class="fa-solid fa-eraser"></i> Noise Removal (Median)
+                </button>
+            </div>
+
+            <p class="section-label" style="margin-top:20px;">Thresholding</p>
+            <div class="control-group">
+                <label>Nilai Threshold (0–255)</label>
+                <div class="slider-row">
+                    <input type="range" id="range-thresh" min="0" max="255" value="127"
+                        oninput="document.getElementById('val-thresh').textContent=this.value">
+                    <span id="val-thresh">127</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Metode Threshold</label>
+                <select id="select-thresh" class="input-field" style="margin-top:4px;">
+                    <option value="binary">Binary</option>
+                    <option value="binary_inv">Binary Inverse</option>
+                    <option value="otsu">Otsu (Auto)</option>
+                    <option value="adaptive">Adaptive</option>
+                </select>
+            </div>
+            <button class="btn-apply" onclick="applyFilter('threshold',{
+                value: parseInt(document.getElementById('range-thresh').value),
+                method: document.getElementById('select-thresh').value
+            })">Terapkan Threshold</button>
+
             <p class="section-label" style="margin-top:20px;">Edge Detection</p>
             <div style="display:flex;flex-direction:column;gap:8px;">
                 <button class="btn-apply" onclick="applyFilter('edge_detection',{method:'canny'})">Canny Edge</button>
                 <button class="btn-apply" onclick="applyFilter('edge_detection',{method:'sobel'})">Sobel Edge</button>
                 <button class="btn-apply" onclick="applyFilter('edge_detection',{method:'prewitt'})">Prewitt Edge</button>
+                <button class="btn-apply" onclick="applyFilter('edge_robert')">Robert Edge</button>
                 <button class="btn-apply" onclick="applyFilter('edge_detection',{method:'laplacian'})">Laplacian</button>
+                <button class="btn-apply" onclick="applyFilter('edge_log')">Laplacian of Gaussian (LoG)</button>
             </div>
+
             <p class="section-label" style="margin-top:20px;">Morfologi Biner</p>
             <div style="display:flex;flex-direction:column;gap:8px;">
                 <button class="btn-apply" onclick="applyFilter('morphology',{type:'erosion',kernel:3})">Erosi</button>
@@ -286,7 +275,7 @@
         <div id="tab-transform" class="tab-content panel-section">
             <p class="section-label">Crop</p>
             <div class="info-box">
-                <p><i class="fa-solid fa-hand-pointer"></i>Klik tombol di bawah, lalu <b style="color:var(--text-1)">klik-tahan-drag</b> pada gambar untuk memilih area crop.</p>
+                <p><i class="fa-solid fa-hand-pointer"></i> Klik tombol di bawah, lalu <b style="color:var(--text-1)">klik-tahan-drag</b> pada gambar untuk memilih area crop.</p>
             </div>
             <button class="btn-apply" onclick="startCropMode()">
                 <i class="fa-solid fa-crop-simple"></i> Aktifkan Mode Crop
@@ -314,7 +303,8 @@
                 <button class="btn-apply" onclick="applyFilter('flip',{direction:'vertical'})"><i class="fa-solid fa-arrows-up-down"></i> Flip V</button>
             </div>
 
-            <div class="control-group" style="margin-top:14px;">
+            <p class="section-label" style="margin-top:20px;">Resize</p>
+            <div class="control-group">
                 <label>Skala Ukuran (%)</label>
                 <div class="slider-row">
                     <input type="range" id="range-resize" min="10" max="200" value="100"
@@ -324,12 +314,103 @@
             </div>
             <button class="btn-apply" onclick="applyFilter('resize',{scale:parseInt(document.getElementById('range-resize').value)})">Ubah Ukuran</button>
 
+            <p class="section-label" style="margin-top:20px;">Translation (Geser)</p>
+            <div class="info-box">
+                <p><i class="fa-solid fa-circle-info"></i> Geser gambar secara horizontal (X) dan vertikal (Y) dalam piksel.</p>
+            </div>
+            <div class="control-group">
+                <label>Geser X (horizontal)</label>
+                <div class="slider-row">
+                    <input type="range" id="range-tx" min="-500" max="500" value="0"
+                        oninput="document.getElementById('val-tx').textContent=this.value+'px'">
+                    <span id="val-tx">0px</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Geser Y (vertikal)</label>
+                <div class="slider-row">
+                    <input type="range" id="range-ty" min="-500" max="500" value="0"
+                        oninput="document.getElementById('val-ty').textContent=this.value+'px'">
+                    <span id="val-ty">0px</span>
+                </div>
+            </div>
+            <button class="btn-apply" onclick="applyFilter('translation',{
+                tx: parseInt(document.getElementById('range-tx').value),
+                ty: parseInt(document.getElementById('range-ty').value)
+            })"><i class="fa-solid fa-up-down-left-right"></i> Geser Gambar</button>
+
+            <p class="section-label" style="margin-top:20px;">Interpolasi</p>
+            <div class="control-group">
+                <label>Skala</label>
+                <div class="slider-row">
+                    <input type="range" id="range-interp-scale" min="10" max="300" value="150"
+                        oninput="document.getElementById('val-interp-scale').textContent=(this.value/100).toFixed(1)+'x'">
+                    <span id="val-interp-scale">1.5x</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Metode Interpolasi</label>
+                <select id="select-interp" class="input-field" style="margin-top:4px;">
+                    <option value="bilinear">Bilinear</option>
+                    <option value="nearest">Nearest Neighbor</option>
+                </select>
+            </div>
+            <button class="btn-apply" onclick="applyFilter('interpolation',{
+                scale: document.getElementById('range-interp-scale').value/100,
+                method: document.getElementById('select-interp').value
+            })">Terapkan Interpolasi</button>
+
             <p class="section-label" style="margin-top:20px;">Channel Splitting</p>
             <div style="display:flex;flex-direction:column;gap:8px;">
                 <button class="btn-apply" onclick="applyFilter('color_channel',{channel:'R'})" style="background:#ff5252;color:white;margin-top:0;">Red Channel</button>
                 <button class="btn-apply" onclick="applyFilter('color_channel',{channel:'G'})" style="background:#4ade80;color:#0e0e10;margin-top:0;">Green Channel</button>
                 <button class="btn-apply" onclick="applyFilter('color_channel',{channel:'B'})" style="background:#38bdf8;color:white;margin-top:0;">Blue Channel</button>
             </div>
+        </div>
+
+        <!-- TAB SEGMENTASI -->
+        <div id="tab-segmentasi" class="tab-content panel-section">
+            <p class="section-label">Image Segmentation</p>
+            <div class="info-box">
+                <p><i class="fa-solid fa-circle-info"></i> Segmentasi memisahkan objek dari latar berdasarkan intensitas, tepi, atau region.</p>
+            </div>
+
+            <p class="section-label">Threshold-based</p>
+            <div class="control-group">
+                <label>Nilai Threshold</label>
+                <div class="slider-row">
+                    <input type="range" id="range-seg-thresh" min="0" max="255" value="127"
+                        oninput="document.getElementById('val-seg-thresh').textContent=this.value">
+                    <span id="val-seg-thresh">127</span>
+                </div>
+            </div>
+            <button class="btn-apply" onclick="applyFilter('segmentation_threshold',{
+                value: parseInt(document.getElementById('range-seg-thresh').value)
+            })"><i class="fa-solid fa-scissors"></i> Segmentasi Threshold</button>
+
+            <p class="section-label" style="margin-top:20px;">Edge-based</p>
+            <div class="info-box">
+                <p><i class="fa-solid fa-circle-info"></i> Deteksi kontur objek menggunakan Canny edge dan ditampilkan sebagai garis hijau.</p>
+            </div>
+            <button class="btn-apply" onclick="applyFilter('segmentation_edge')">
+                <i class="fa-solid fa-draw-polygon"></i> Segmentasi Edge (Kontur)
+            </button>
+
+            <p class="section-label" style="margin-top:20px;">Region-based (Watershed)</p>
+            <div class="info-box">
+                <p><i class="fa-solid fa-circle-info"></i> Memisahkan region menggunakan algoritma Watershed. Batas antar region ditandai warna hijau.</p>
+            </div>
+            <button class="btn-apply" onclick="applyFilter('segmentation_region')">
+                <i class="fa-solid fa-map"></i> Segmentasi Region (Watershed)
+            </button>
+
+            <p class="section-label" style="margin-top:20px;">Kompresi RLE</p>
+            <div class="info-box">
+                <p><i class="fa-solid fa-circle-info"></i> Run-Length Encoding — simulasi kompresi sederhana. Rasio kompresi ditampilkan pada gambar.</p>
+            </div>
+            <button class="btn-apply" onclick="applyFilter('compress_rle')">
+                <i class="fa-solid fa-file-zipper"></i> Simulasi RLE
+            </button>
         </div>
 
         <!-- TAB HISTOGRAM -->
@@ -356,7 +437,7 @@
         <div id="tab-text" class="tab-content panel-section">
             <p class="section-label">Tambah Teks ke Gambar</p>
             <div class="info-box">
-                <p><i class="fa-solid fa-hand-pointer"></i>Isi teks di bawah, lalu <b style="color:var(--text-1)">klik posisi manapun</b> pada gambar untuk menempatkan teks.</p>
+                <p><i class="fa-solid fa-hand-pointer"></i> Isi teks di bawah, lalu <b style="color:var(--text-1)">klik posisi manapun</b> pada gambar untuk menempatkan teks.</p>
             </div>
             <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px;">
                 <div class="input-group">
@@ -400,34 +481,43 @@
                     <span>Mini Photoshop</span>
                 </div>
             </div>
-           <div class="topbar-right">
-    <button class="btn-icon-only {% if can_undo %}has-history{% endif %}"
-        id="undo-btn" title="Undo perubahan terakhir" onclick="doUndo()"
-        style="display:flex;align-items:center;gap:5px;padding:0 10px;width:auto;">
-        <i class="fa-solid fa-rotate-left"></i>
-        <span style="font-size:11px;font-weight:600;">Undo</span>
-    </button>
-    <button class="btn-icon-only" title="Kembali ke gambar awal" onclick="doResetToOriginal()"
-        style="display:flex;align-items:center;gap:5px;padding:0 10px;width:auto;">
-        <i class="fa-solid fa-clock-rotate-left"></i>
-        <span style="font-size:11px;font-weight:600;">Reset Edit</span>
-    </button>
-    <div class="divider-v"></div>
-    {% if processed_image %}
-    <a href="/download" style="text-decoration:none;">
-        <button class="btn-download"><i class="fa-solid fa-download"></i> Simpan Gambar</button>
-    </a>
-    {% else %}
-    <button class="btn-download" style="opacity:0.5;cursor:not-allowed;" disabled>
-        <i class="fa-solid fa-download"></i> Simpan Gambar
-    </button>
-    {% endif %}
-</div>
+            <div class="topbar-right">
+                <button class="btn-icon-only {% if can_undo %}has-history{% endif %}"
+                    id="undo-btn" title="Undo perubahan terakhir" onclick="doUndo()"
+                    style="display:flex;align-items:center;gap:5px;padding:0 10px;width:auto;">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span style="font-size:11px;font-weight:600;">Undo</span>
+                </button>
+                <button class="btn-icon-only" title="Kembali ke gambar awal" onclick="doResetToOriginal()"
+                    style="display:flex;align-items:center;gap:5px;padding:0 10px;width:auto;">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span style="font-size:11px;font-weight:600;">Reset Edit</span>
+                </button>
+                <div class="divider-v"></div>
+                {% if processed_image %}
+                <div style="display:flex;gap:6px;align-items:center;">
+                    <select id="select-format" class="input-field"
+                        style="width:70px;padding:5px 8px;font-size:11px;border-radius:99px;">
+                        <option value="png">PNG</option>
+                        <option value="jpg">JPG</option>
+                        <option value="bmp">BMP</option>
+                    </select>
+                    <a id="btn-download-link" href="/download?format=png" style="text-decoration:none;">
+                        <button class="btn-download" onclick="updateDownloadLink()">
+                            <i class="fa-solid fa-download"></i> Simpan Gambar
+                        </button>
+                    </a>
+                </div>
+                {% else %}
+                <button class="btn-download" style="opacity:0.5;cursor:not-allowed;" disabled>
+                    <i class="fa-solid fa-download"></i> Simpan Gambar
+                </button>
+                {% endif %}
+            </div>
         </header>
 
         <div class="canvas-zone" id="canvasZone">
             {% if not original_image %}
-            <!-- ── UPLOAD STATE ── -->
             <div class="upload-state" id="uploadState">
                 <div class="upload-card">
                     <div class="upload-icon-ring"><i class="fa-solid fa-cloud-arrow-up"></i></div>
@@ -458,7 +548,6 @@
             </div>
 
             {% else %}
-            <!-- ── PREVIEW STATE ── -->
             <div class="preview-state">
                 <div class="preview-label-row">
                     <span class="preview-badge original">Sebelum (Original)</span>
@@ -466,31 +555,22 @@
                     <span class="preview-badge processed">Sesudah (Hasil Edit)</span>
                 </div>
                 <div class="preview-panels">
-                    <!-- Panel Original -->
                     <div class="panel-box">
                         <div class="image-frame">
                             <img id="img-original" src="{{ original_image }}" alt="Original">
                         </div>
                     </div>
                     <div class="panel-divider"><i class="fa-solid fa-arrows-left-right"></i></div>
-                    <!-- Panel Processed + Overlay -->
-                    <div class="panel-box" style="position:relative; overflow:hidden;">
+                    <div class="panel-box" style="position:relative;overflow:hidden;">
                         <div class="canvas-wrapper" id="canvasWrapper">
                             <img id="display-processed" src="{{ processed_image }}" alt="Processed"
                                 style="max-width:100%;max-height:100%;object-fit:contain;border-radius:6px;display:block;">
-                            <!-- Crop overlay -->
-                            <div id="crop-overlay">
-                                <div id="crop-selection"></div>
-                            </div>
-                            <!-- Crop toolbar -->
+                            <div id="crop-overlay"><div id="crop-selection"></div></div>
                             <div class="crop-toolbar" id="crop-toolbar">
                                 <button class="crop-btn confirm" onclick="confirmCrop()"><i class="fa-solid fa-check"></i> Crop</button>
-                                <button class="crop-btn cancel"  onclick="cancelCrop()"><i class="fa-solid fa-xmark"></i> Batal</button>
+                                <button class="crop-btn cancel" onclick="cancelCrop()"><i class="fa-solid fa-xmark"></i> Batal</button>
                             </div>
-                            <!-- Text overlay -->
-                            <div id="text-overlay">
-                                <div id="text-preview"></div>
-                            </div>
+                            <div id="text-overlay"><div id="text-preview"></div></div>
                         </div>
                     </div>
                 </div>
@@ -563,7 +643,7 @@ function setStatus(state, msg) {
 }
 
 // =============================================
-// UNDO
+// UNDO & RESET
 // =============================================
 function updateUndoBtn(canUndo) {
     const btn = document.getElementById('undo-btn');
@@ -608,6 +688,12 @@ function doResetToOriginal() {
     .catch(err => { setStatus('error', 'Koneksi error'); console.error(err); });
 }
 
+function updateDownloadLink() {
+    const fmt  = document.getElementById('select-format');
+    const link = document.getElementById('btn-download-link');
+    if (fmt && link) link.href = '/download?format=' + fmt.value;
+}
+
 // =============================================
 // BRIGHTNESS & CONTRAST
 // =============================================
@@ -627,9 +713,9 @@ function handleBrightnessContrast(slider) {
 // =============================================
 // CROP — DRAG TO SELECT
 // =============================================
-let cropMode   = false;
-let cropStart  = null;
-let cropRect   = {};
+let cropMode  = false;
+let cropStart = null;
+let cropRect  = {};
 
 function getImgRect() {
     const img = document.getElementById('display-processed');
@@ -640,18 +726,16 @@ function getImgRect() {
 function startCropMode() {
     if (!document.getElementById('crop-overlay')) return;
     cancelTextMode();
-    cropMode = true;
+    cropMode  = true;
     cropStart = null;
     cropRect  = {};
     const overlay = document.getElementById('crop-overlay');
     const sel     = document.getElementById('crop-selection');
     const toolbar = document.getElementById('crop-toolbar');
     overlay.classList.add('active');
-    sel.style.display    = 'none';
+    sel.style.display = 'none';
     toolbar.classList.remove('visible');
-    setStatus('done');
     document.getElementById('status-loading').textContent = 'Mode Crop — Drag pada gambar';
-
     overlay.onmousedown = onCropMouseDown;
     overlay.onmousemove = onCropMouseMove;
     overlay.onmouseup   = onCropMouseUp;
@@ -676,12 +760,12 @@ function onCropMouseMove(e) {
     if (!cropStart) return;
     const imgRect = getImgRect();
     if (!imgRect) return;
-    const cx = Math.max(0, Math.min(e.clientX - imgRect.left, imgRect.width));
-    const cy = Math.max(0, Math.min(e.clientY - imgRect.top,  imgRect.height));
-    const x  = Math.min(cropStart.x, cx);
-    const y  = Math.min(cropStart.y, cy);
-    const w  = Math.abs(cx - cropStart.x);
-    const h  = Math.abs(cy - cropStart.y);
+    const cx  = Math.max(0, Math.min(e.clientX - imgRect.left, imgRect.width));
+    const cy  = Math.max(0, Math.min(e.clientY - imgRect.top,  imgRect.height));
+    const x   = Math.min(cropStart.x, cx);
+    const y   = Math.min(cropStart.y, cy);
+    const w   = Math.abs(cx - cropStart.x);
+    const h   = Math.abs(cy - cropStart.y);
     const sel = document.getElementById('crop-selection');
     sel.style.left   = x + 'px';
     sel.style.top    = y + 'px';
@@ -690,19 +774,17 @@ function onCropMouseMove(e) {
     cropRect = { x, y, w, h };
 }
 
-function onCropMouseUp(e) {
+function onCropMouseUp() {
     if (!cropStart) return;
     cropStart = null;
-    if (cropRect.w > 5 && cropRect.h > 5) {
+    if (cropRect.w > 5 && cropRect.h > 5)
         document.getElementById('crop-toolbar').classList.add('visible');
-    }
 }
 
 function confirmCrop() {
     if (!cropRect.w || !cropRect.h) return;
     const img     = document.getElementById('display-processed');
     const imgRect = img.getBoundingClientRect();
-    // Hitung skala: ukuran tampil vs ukuran asli gambar
     const scaleX  = img.naturalWidth  / imgRect.width;
     const scaleY  = img.naturalHeight / imgRect.height;
     const realX   = Math.round(cropRect.x * scaleX);
@@ -723,7 +805,8 @@ function cancelCrop() {
     if (overlay) { overlay.classList.remove('active'); overlay.onmousedown = null; overlay.onmousemove = null; overlay.onmouseup = null; }
     if (sel)     sel.style.display = 'none';
     if (toolbar) toolbar.classList.remove('visible');
-    document.getElementById('status-loading').textContent = 'Siap diproses';
+    const st = document.getElementById('status-loading');
+    if (st) st.textContent = 'Siap diproses';
 }
 
 // =============================================
@@ -733,7 +816,7 @@ let textMode = false;
 
 function startTextMode() {
     const text = document.getElementById('input-text').value.trim();
-    if (!text) { alert('Isi teks dulu sebelum mengaktifkan mode teks!'); document.getElementById('input-text').focus(); return; }
+    if (!text) { alert('Isi teks dulu!'); document.getElementById('input-text').focus(); return; }
     cancelCrop();
     textMode = true;
     const overlay = document.getElementById('text-overlay');
@@ -742,9 +825,7 @@ function startTextMode() {
     document.getElementById('btn-text-mode').style.display   = 'none';
     document.getElementById('btn-text-cancel').style.display = 'block';
     document.getElementById('status-loading').textContent    = 'Mode Teks — Klik posisi pada gambar';
-
     updateTextPreview();
-
     overlay.onmousemove = onTextMouseMove;
     overlay.onclick     = onTextClick;
 }
@@ -757,32 +838,31 @@ function stopTextMode() {
     if (preview) preview.style.display = 'none';
     document.getElementById('btn-text-mode').style.display   = 'block';
     document.getElementById('btn-text-cancel').style.display = 'none';
-    document.getElementById('status-loading').textContent    = 'Siap diproses';
+    const st = document.getElementById('status-loading');
+    if (st) st.textContent = 'Siap diproses';
 }
 
 function cancelTextMode() { if (textMode) stopTextMode(); }
 
 function updateTextPreview() {
-    const preview  = document.getElementById('text-preview');
+    const preview = document.getElementById('text-preview');
     if (!preview) return;
-    const text     = document.getElementById('input-text') ? document.getElementById('input-text').value || 'Teks' : 'Teks';
-    const size     = document.getElementById('range-fontsize') ? document.getElementById('range-fontsize').value : 32;
-    const color    = document.getElementById('input-textcolor') ? document.getElementById('input-textcolor').value : '#ffffff';
-    preview.textContent  = text;
-    preview.style.fontSize   = size + 'px';
-    preview.style.color      = color;
+    const text  = document.getElementById('input-text')      ? document.getElementById('input-text').value || 'Teks'  : 'Teks';
+    const size  = document.getElementById('range-fontsize')  ? document.getElementById('range-fontsize').value        : 32;
+    const color = document.getElementById('input-textcolor') ? document.getElementById('input-textcolor').value       : '#ffffff';
+    preview.textContent       = text;
+    preview.style.fontSize    = size + 'px';
+    preview.style.color       = color;
 }
 
 function onTextMouseMove(e) {
-    const preview  = document.getElementById('text-preview');
-    const overlay  = document.getElementById('text-overlay');
+    const preview = document.getElementById('text-preview');
+    const overlay = document.getElementById('text-overlay');
     if (!preview || !overlay) return;
     const rect = overlay.getBoundingClientRect();
-    const x    = e.clientX - rect.left;
-    const y    = e.clientY - rect.top;
     preview.style.display = 'block';
-    preview.style.left    = x + 'px';
-    preview.style.top     = y + 'px';
+    preview.style.left    = (e.clientX - rect.left) + 'px';
+    preview.style.top     = (e.clientY - rect.top)  + 'px';
 }
 
 function onTextClick(e) {
@@ -793,16 +873,13 @@ function onTextClick(e) {
     const ox      = e.clientX - imgRect.left;
     const oy      = e.clientY - imgRect.top;
     if (ox < 0 || oy < 0 || ox > imgRect.width || oy > imgRect.height) return;
-
     const scaleX  = img.naturalWidth  / imgRect.width;
     const scaleY  = img.naturalHeight / imgRect.height;
     const realX   = Math.round(ox * scaleX);
     const realY   = Math.round(oy * scaleY);
-
     const text    = document.getElementById('input-text').value.trim() || 'Teks';
     const size    = parseInt(document.getElementById('range-fontsize').value) || 32;
     const color   = document.getElementById('input-textcolor').value || '#ffffff';
-
     stopTextMode();
     applyFilter('add_text', { text, size, x: realX, y: realY, color });
 }

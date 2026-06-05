@@ -145,23 +145,31 @@ def reset_image():
 
 @app.route('/download')
 def download_image():
-    """Encode gambar current ke bytes lalu kirim sebagai file download"""
     if image_state['current'] is None:
         return redirect(url_for('index'))
+
+    fmt = request.args.get('format', 'png').lower()
+    if fmt not in ['png', 'jpg', 'bmp']:
+        fmt = 'png'
 
     img = image_state['current']
     if len(img.shape) == 2:
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
-    success, buffer = cv2.imencode('.png', img)
+    ext    = '.jpg' if fmt == 'jpg' else f'.{fmt}'
+    mime   = 'image/jpeg' if fmt == 'jpg' else f'image/{fmt}'
+    params = [cv2.IMWRITE_JPEG_QUALITY, 95] if fmt == 'jpg' else []
+
+    success, buffer = cv2.imencode(ext, img, params)
     if not success:
         return redirect(url_for('index'))
 
+    base = os.path.splitext(image_state['filename'])[0]
     return send_file(
         io.BytesIO(buffer.tobytes()),
-        mimetype='image/png',
+        mimetype=mime,
         as_attachment=True,
-        download_name=f"photolab_{image_state['filename']}"
+        download_name=f"photolab_{base}{ext}"
     )
 
 # =============================================
@@ -374,6 +382,113 @@ def process_image_api():
                 cv2.rectangle(out_img, (x, y), (x + w, y + h), (87, 255, 168), 2)
                 cv2.putText(out_img, "Objek", (x, y - 8),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (87, 255, 168), 1)
+    elif action == 'translation':
+        tx = int(params.get('tx', 0))
+        ty = int(params.get('ty', 0))
+        h, w = img_bgr.shape[:2]
+        M = np.float32([[1, 0, tx], [0, 1, ty]])
+        out_img = cv2.warpAffine(img_bgr, M, (w, h))
+
+    elif action == 'noise_saltpepper':
+        amount = float(params.get('amount', 0.02))
+        out_img = img_bgr.copy()
+        total = int(amount * out_img.size)
+        # Salt
+        coords = [np.random.randint(0, i, total // 2) for i in out_img.shape[:2]]
+        out_img[coords[0], coords[1]] = 255
+        # Pepper
+        coords = [np.random.randint(0, i, total // 2) for i in out_img.shape[:2]]
+        out_img[coords[0], coords[1]] = 0
+
+    elif action == 'noise_removal_sp':
+        k_size = int(params.get('kernel', 3))
+        if k_size % 2 == 0:
+            k_size += 1
+        out_img = cv2.medianBlur(img_bgr, k_size)
+
+    elif action == 'threshold':
+        thresh_val = int(params.get('value', 127))
+        method     = params.get('method', 'binary')
+        gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+        if method == 'binary':
+            _, out_img = cv2.threshold(gray, thresh_val, 255, cv2.THRESH_BINARY)
+        elif method == 'binary_inv':
+            _, out_img = cv2.threshold(gray, thresh_val, 255, cv2.THRESH_BINARY_INV)
+        elif method == 'otsu':
+            _, out_img = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        elif method == 'adaptive':
+            out_img = cv2.adaptiveThreshold(gray, 255,
+                cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+
+    elif action == 'edge_robert':
+        gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY).astype(np.float32)
+        kx = np.array([[1, 0], [0, -1]], dtype=np.float32)
+        ky = np.array([[0, 1], [-1, 0]], dtype=np.float32)
+        px = cv2.filter2D(gray, -1, kx)
+        py = cv2.filter2D(gray, -1, ky)
+        out_img = cv2.convertScaleAbs(np.sqrt(px**2 + py**2))
+
+    elif action == 'edge_log':
+        gray   = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+        blur   = cv2.GaussianBlur(gray, (5, 5), 0)
+        out_img = cv2.convertScaleAbs(cv2.Laplacian(blur, cv2.CV_64F))
+
+    elif action == 'segmentation_threshold':
+        thresh_val = int(params.get('value', 127))
+        gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+        _, mask = cv2.threshold(gray, thresh_val, 255, cv2.THRESH_BINARY)
+        out_img = cv2.bitwise_and(img_bgr, img_bgr, mask=mask)
+
+    elif action == 'segmentation_edge':
+        gray    = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+        edges   = cv2.Canny(gray, 50, 150)
+        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        out_img = img_bgr.copy()
+        cv2.drawContours(out_img, contours, -1, (87, 255, 168), 2)
+
+    elif action == 'segmentation_region':
+        gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        # Distance transform + watershed sederhana
+        dist = cv2.distanceTransform(thresh, cv2.DIST_L2, 5)
+        _, sure_fg = cv2.threshold(dist, 0.5 * dist.max(), 255, 0)
+        sure_fg = sure_fg.astype(np.uint8)
+        unknown = cv2.subtract(thresh, sure_fg)
+        _, markers = cv2.connectedComponents(sure_fg)
+        markers = markers + 1
+        markers[unknown == 255] = 0
+        markers = cv2.watershed(img_bgr, markers)
+        out_img = img_bgr.copy()
+        out_img[markers == -1] = [87, 255, 168]
+
+    elif action == 'compress_rle':
+        # Simulasi RLE — encode lalu decode, tampilkan info kompresi
+        gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+        flat = gray.flatten()
+        # Encode RLE
+        runs = []
+        count = 1
+        for i in range(1, len(flat)):
+            if flat[i] == flat[i-1]:
+                count += 1
+            else:
+                runs.append((flat[i-1], count))
+                count = 1
+        runs.append((flat[-1], count))
+        # Decode balik untuk tampilan
+        decoded = np.array([v for val, cnt in runs for v in [val]*cnt],
+                           dtype=np.uint8).reshape(gray.shape)
+        out_img = cv2.cvtColor(decoded, cv2.COLOR_GRAY2BGR)
+        # Tulis info di gambar
+        ratio = len(flat) / (len(runs) * 2) if runs else 1
+        cv2.putText(out_img, f"RLE Ratio: {ratio:.2f}x",
+                    (10, 30), cv2.FONT_HERSHEY_DUPLEX, 0.8, (87,255,168), 2)
+
+    elif action == 'interpolation':
+        scale  = float(params.get('scale', 1.5))
+        method = params.get('method', 'bilinear')
+        interp = cv2.INTER_LINEAR if method == 'bilinear' else cv2.INTER_NEAREST
+        out_img = cv2.resize(img_bgr, None, fx=scale, fy=scale, interpolation=interp)
 
     else:
         return jsonify({'error': f'Action tidak dikenal: {action}'}), 400
