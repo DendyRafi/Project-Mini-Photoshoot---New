@@ -30,6 +30,88 @@
         .info-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 12px; }
         .info-box p { font-size: 11px; color: var(--text-3); line-height: 1.5; }
         .info-box i { color: var(--accent); margin-right: 4px; }
+
+        /* ── CROP OVERLAY ── */
+        .canvas-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+        #crop-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            cursor: crosshair;
+            z-index: 10;
+            display: none;
+        }
+        #crop-overlay.active { display: block; }
+        #crop-selection {
+            position: absolute;
+            border: 2px dashed var(--accent);
+            background: rgba(168,255,87,0.08);
+            pointer-events: none;
+            display: none;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.45);
+        }
+        .crop-toolbar {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            gap: 8px;
+            z-index: 20;
+        }
+        .crop-toolbar.visible { display: flex; }
+        .crop-btn {
+            padding: 7px 18px;
+            border-radius: 99px;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+        }
+        .crop-btn.confirm { background: var(--accent); color: #0e0e10; }
+        .crop-btn.confirm:hover { background: #c5ff70; }
+        .crop-btn.cancel  { background: var(--bg-card); color: var(--text-2); border: 1px solid var(--border); }
+        .crop-btn.cancel:hover  { background: var(--bg-card-h); color: var(--text-1); }
+
+        /* ── TEXT DRAG OVERLAY ── */
+        #text-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            cursor: crosshair;
+            z-index: 10;
+            display: none;
+        }
+        #text-overlay.active { display: block; }
+        #text-preview {
+            position: absolute;
+            pointer-events: none;
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.8);
+            white-space: nowrap;
+            display: none;
+            z-index: 15;
+            transform: translate(-50%, -50%);
+        }
+
+        /* ── UNDO BADGE ── */
+        #undo-btn { position: relative; }
+        #undo-btn.has-history { color: var(--accent) !important; }
+
+        /* ── STATUS ── */
+        .status-processing { color: var(--orange) !important; }
+        .status-done       { color: var(--accent) !important; }
+        .status-error      { color: var(--red) !important; }
     </style>
 </head>
 <body>
@@ -40,12 +122,12 @@
     <nav class="icon-rail">
         <div class="rail-logo"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
         <div class="rail-links">
-            <a href="#" class="rail-btn active" data-tab="tab-dasar" data-tip="Dasar"><i class="fa-solid fa-layer-group"></i></a>
-            <a href="#" class="rail-btn" data-tab="tab-adjust" data-tip="Adjust"><i class="fa-solid fa-sliders"></i></a>
-            <a href="#" class="rail-btn" data-tab="tab-filter" data-tip="Filter"><i class="fa-solid fa-wand-magic"></i></a>
-            <a href="#" class="rail-btn" data-tab="tab-transform" data-tip="Transform"><i class="fa-solid fa-crop-simple"></i></a>
-            <a href="#" class="rail-btn" data-tab="tab-histogram" data-tip="Histogram"><i class="fa-solid fa-chart-bar"></i></a>
-            <a href="#" class="rail-btn" data-tab="tab-text" data-tip="Teks"><i class="fa-solid fa-font"></i></a>
+            <a href="#" class="rail-btn active" data-tab="tab-dasar"     data-tip="Dasar"><i class="fa-solid fa-layer-group"></i></a>
+            <a href="#" class="rail-btn"         data-tab="tab-adjust"    data-tip="Adjust"><i class="fa-solid fa-sliders"></i></a>
+            <a href="#" class="rail-btn"         data-tab="tab-filter"    data-tip="Filter"><i class="fa-solid fa-wand-magic"></i></a>
+            <a href="#" class="rail-btn"         data-tab="tab-transform" data-tip="Transform"><i class="fa-solid fa-crop-simple"></i></a>
+            <a href="#" class="rail-btn"         data-tab="tab-histogram" data-tip="Histogram"><i class="fa-solid fa-chart-bar"></i></a>
+            <a href="#" class="rail-btn"         data-tab="tab-text"      data-tip="Teks"><i class="fa-solid fa-font"></i></a>
         </div>
         <div class="rail-bottom">
             <a href="/reset" class="rail-btn danger" data-tip="Reset"><i class="fa-solid fa-rotate-left"></i></a>
@@ -70,7 +152,7 @@
                     </div>
                     <span class="card-label">Grayscale</span>
                 </div>
-                <div class="tool-card" onclick="applyFilter('blur_filter', {type:'gaussian', kernel:9})">
+                <div class="tool-card" onclick="applyFilter('blur_filter',{type:'gaussian',kernel:9})">
                     <div class="card-thumb blur-thumb">
                         <div class="thumb-blur-demo"><div class="blur-circle c1"></div><div class="blur-circle c2"></div></div>
                         <div class="card-badge">Dasar</div>
@@ -84,7 +166,7 @@
                     </div>
                     <span class="card-label">Sharpening</span>
                 </div>
-                <div class="tool-card" onclick="applyFilter('edge_detection', {method:'canny'})">
+                <div class="tool-card" onclick="applyFilter('edge_detection',{method:'canny'})">
                     <div class="card-thumb edge-thumb">
                         <div class="edge-rect" style="border-color:var(--accent)"></div>
                         <div class="card-badge">Dasar</div>
@@ -96,38 +178,26 @@
             <p class="section-label" style="margin-top:20px;">Adjust & Warna</p>
             <div class="tools-grid">
                 <div class="tool-card" onclick="switchTab('tab-adjust')">
-                    <div class="card-thumb brightness-thumb">
-                        <div class="bright-gradient"></div>
-                        <div class="card-badge">Adjust</div>
-                    </div>
+                    <div class="card-thumb brightness-thumb"><div class="bright-gradient"></div><div class="card-badge">Adjust</div></div>
                     <span class="card-label">Brightness</span>
                 </div>
                 <div class="tool-card" onclick="switchTab('tab-adjust')">
-                    <div class="card-thumb contrast-thumb">
-                        <div class="contrast-half h1"></div><div class="contrast-half h2"></div>
-                        <div class="card-badge">Adjust</div>
-                    </div>
+                    <div class="card-thumb contrast-thumb"><div class="contrast-half h1"></div><div class="contrast-half h2"></div><div class="card-badge">Adjust</div></div>
                     <span class="card-label">Contrast</span>
                 </div>
                 <div class="tool-card" onclick="switchTab('tab-adjust')">
-                    <div class="card-thumb saturation-thumb">
-                        <div class="sat-ring r1"></div><div class="sat-ring r2"></div>
-                        <div class="card-badge">Adjust</div>
-                    </div>
+                    <div class="card-thumb saturation-thumb"><div class="sat-ring r1"></div><div class="sat-ring r2"></div><div class="card-badge">Adjust</div></div>
                     <span class="card-label">Saturation</span>
                 </div>
                 <div class="tool-card" onclick="switchTab('tab-adjust')">
-                    <div class="card-thumb hue-thumb">
-                        <div class="hue-wheel"></div>
-                        <div class="card-badge">Adjust</div>
-                    </div>
+                    <div class="card-thumb hue-thumb"><div class="hue-wheel"></div><div class="card-badge">Adjust</div></div>
                     <span class="card-label">Hue Rotate</span>
                 </div>
             </div>
 
             <p class="section-label" style="margin-top:20px;">Transform</p>
             <div class="tools-grid">
-                <div class="tool-card" onclick="switchTab('tab-transform')">
+                <div class="tool-card" onclick="startCropMode()">
                     <div class="card-thumb crop-thumb" style="display:flex;align-items:center;justify-content:center;">
                         <i class="fa-solid fa-crop-simple crop-icon-demo" style="font-size:26px;"></i>
                         <div class="card-badge">Transform</div>
@@ -147,25 +217,20 @@
         <!-- TAB ADJUST -->
         <div id="tab-adjust" class="tab-content panel-section">
             <p class="section-label">Adjust & Warna</p>
-
             <div class="control-group">
                 <label>Brightness</label>
                 <div class="slider-row">
-                    <input type="range" id="range-brightness" min="-100" max="100" value="0"
-                        oninput="handleBrightnessContrast(this)">
+                    <input type="range" id="range-brightness" min="-100" max="100" value="0" oninput="handleBrightnessContrast(this)">
                     <span id="val-brightness">0</span>
                 </div>
             </div>
-
             <div class="control-group">
                 <label>Contrast</label>
                 <div class="slider-row">
-                    <input type="range" id="range-contrast" min="5" max="30" value="10"
-                        oninput="handleBrightnessContrast(this)">
+                    <input type="range" id="range-contrast" min="5" max="30" value="10" oninput="handleBrightnessContrast(this)">
                     <span id="val-contrast">1.0</span>
                 </div>
             </div>
-
             <div class="control-group">
                 <label>Saturation</label>
                 <div class="slider-row">
@@ -174,7 +239,6 @@
                     <span id="val-saturation">1.0</span>
                 </div>
             </div>
-
             <div class="control-group">
                 <label>Hue Rotate</label>
                 <div class="slider-row">
@@ -189,14 +253,14 @@
         <div id="tab-filter" class="tab-content panel-section">
             <p class="section-label">Smoothing & Restoration</p>
             <div class="tools-grid">
-                <div class="tool-card" onclick="applyFilter('blur_filter', {type:'gaussian', kernel:9})">
+                <div class="tool-card" onclick="applyFilter('blur_filter',{type:'gaussian',kernel:9})">
                     <div class="card-thumb blur-thumb">
                         <div class="thumb-blur-demo"><div class="blur-circle c1"></div><div class="blur-circle c2"></div></div>
                         <div class="card-badge">Filter</div>
                     </div>
                     <span class="card-label">Gaussian Blur</span>
                 </div>
-                <div class="tool-card" onclick="applyFilter('blur_filter', {type:'median', kernel:5})">
+                <div class="tool-card" onclick="applyFilter('blur_filter',{type:'median',kernel:5})">
                     <div class="card-thumb blur-thumb">
                         <div class="thumb-blur-demo"><div class="blur-circle c1"></div><div class="blur-circle c2"></div></div>
                         <div class="card-badge">Filter</div>
@@ -204,56 +268,34 @@
                     <span class="card-label">Median Filter</span>
                 </div>
             </div>
-
             <p class="section-label" style="margin-top:20px;">Edge Detection</p>
-            <div style="display:flex; flex-direction:column; gap:8px;">
-                <button class="btn-apply" onclick="applyFilter('edge_detection', {method:'canny'})">Canny Edge</button>
-                <button class="btn-apply" onclick="applyFilter('edge_detection', {method:'sobel'})">Sobel Edge</button>
-                <button class="btn-apply" onclick="applyFilter('edge_detection', {method:'laplacian'})">Laplacian</button>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <button class="btn-apply" onclick="applyFilter('edge_detection',{method:'canny'})">Canny Edge</button>
+                <button class="btn-apply" onclick="applyFilter('edge_detection',{method:'sobel'})">Sobel Edge</button>
+                <button class="btn-apply" onclick="applyFilter('edge_detection',{method:'prewitt'})">Prewitt Edge</button>
+                <button class="btn-apply" onclick="applyFilter('edge_detection',{method:'laplacian'})">Laplacian</button>
             </div>
-
             <p class="section-label" style="margin-top:20px;">Morfologi Biner</p>
-            <div style="display:flex; flex-direction:column; gap:8px;">
-                <button class="btn-apply" onclick="applyFilter('morphology', {type:'erosion', kernel:3})">Erosi</button>
-                <button class="btn-apply" onclick="applyFilter('morphology', {type:'dilation', kernel:3})">Dilatasi</button>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <button class="btn-apply" onclick="applyFilter('morphology',{type:'erosion',kernel:3})">Erosi</button>
+                <button class="btn-apply" onclick="applyFilter('morphology',{type:'dilation',kernel:3})">Dilatasi</button>
             </div>
         </div>
 
         <!-- TAB TRANSFORM -->
         <div id="tab-transform" class="tab-content panel-section">
-
-            <p class="section-label">Crop Manual</p>
+            <p class="section-label">Crop</p>
             <div class="info-box">
-                <p><i class="fa-solid fa-circle-info"></i>Isi koordinat area yang ingin di-crop. X/Y = titik sudut kiri atas, W = lebar, H = tinggi (dalam piksel).</p>
+                <p><i class="fa-solid fa-hand-pointer"></i>Klik tombol di bawah, lalu <b style="color:var(--text-1)">klik-tahan-drag</b> pada gambar untuk memilih area crop.</p>
             </div>
-            <div style="background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px; margin-bottom:10px;">
-                <div class="grid-2">
-                    <div class="input-group">
-                        <label class="input-label">X (kiri)</label>
-                        <input type="number" id="crop-x" value="0" min="0" class="input-field">
-                    </div>
-                    <div class="input-group">
-                        <label class="input-label">Y (atas)</label>
-                        <input type="number" id="crop-y" value="0" min="0" class="input-field">
-                    </div>
-                    <div class="input-group">
-                        <label class="input-label">Lebar (W)</label>
-                        <input type="number" id="crop-w" value="200" min="1" class="input-field">
-                    </div>
-                    <div class="input-group">
-                        <label class="input-label">Tinggi (H)</label>
-                        <input type="number" id="crop-h" value="200" min="1" class="input-field">
-                    </div>
-                </div>
-                <button class="btn-apply" style="margin-top:4px;" onclick="applyCropManual()">
-                    <i class="fa-solid fa-crop-simple"></i> Crop Sekarang
-                </button>
-                <button class="btn-secondary" onclick="applyFilter('crop_center')">
-                    <i class="fa-solid fa-compress"></i> Crop Tengah Otomatis
-                </button>
-            </div>
+            <button class="btn-apply" onclick="startCropMode()">
+                <i class="fa-solid fa-crop-simple"></i> Aktifkan Mode Crop
+            </button>
+            <button class="btn-secondary" onclick="applyFilter('crop_center')">
+                <i class="fa-solid fa-compress"></i> Crop Tengah Otomatis
+            </button>
 
-            <p class="section-label" style="margin-top:8px;">Rotasi</p>
+            <p class="section-label" style="margin-top:20px;">Rotasi</p>
             <div class="control-group">
                 <label>Derajat (0° – 360°)</label>
                 <div class="slider-row">
@@ -262,18 +304,14 @@
                     <span id="val-rotate">0°</span>
                 </div>
             </div>
-            <button class="btn-apply" onclick="applyFilter('rotate', {angle: parseInt(document.getElementById('range-rotate').value)})">
+            <button class="btn-apply" onclick="applyFilter('rotate',{angle:parseInt(document.getElementById('range-rotate').value)})">
                 <i class="fa-solid fa-rotate-right"></i> Putar Gambar
             </button>
 
             <p class="section-label" style="margin-top:20px;">Geometri Cepat</p>
             <div class="tools-grid">
-                <button class="btn-apply" onclick="applyFilter('flip', {direction:'horizontal'})">
-                    <i class="fa-solid fa-arrows-left-right"></i> Flip H
-                </button>
-                <button class="btn-apply" onclick="applyFilter('flip', {direction:'vertical'})">
-                    <i class="fa-solid fa-arrows-up-down"></i> Flip V
-                </button>
+                <button class="btn-apply" onclick="applyFilter('flip',{direction:'horizontal'})"><i class="fa-solid fa-arrows-left-right"></i> Flip H</button>
+                <button class="btn-apply" onclick="applyFilter('flip',{direction:'vertical'})"><i class="fa-solid fa-arrows-up-down"></i> Flip V</button>
             </div>
 
             <div class="control-group" style="margin-top:14px;">
@@ -284,18 +322,13 @@
                     <span id="val-resize">100%</span>
                 </div>
             </div>
-            <button class="btn-apply" onclick="applyFilter('resize', {scale: parseInt(document.getElementById('range-resize').value)})">
-                Ubah Ukuran
-            </button>
+            <button class="btn-apply" onclick="applyFilter('resize',{scale:parseInt(document.getElementById('range-resize').value)})">Ubah Ukuran</button>
 
             <p class="section-label" style="margin-top:20px;">Channel Splitting</p>
-            <div style="display:flex; flex-direction:column; gap:8px;">
-                <button class="btn-apply" onclick="applyFilter('color_channel', {channel:'R'})"
-                    style="background:#ff5252; color:white; margin-top:0;">Red Channel</button>
-                <button class="btn-apply" onclick="applyFilter('color_channel', {channel:'G'})"
-                    style="background:#4ade80; color:#0e0e10; margin-top:0;">Green Channel</button>
-                <button class="btn-apply" onclick="applyFilter('color_channel', {channel:'B'})"
-                    style="background:#38bdf8; color:white; margin-top:0;">Blue Channel</button>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <button class="btn-apply" onclick="applyFilter('color_channel',{channel:'R'})" style="background:#ff5252;color:white;margin-top:0;">Red Channel</button>
+                <button class="btn-apply" onclick="applyFilter('color_channel',{channel:'G'})" style="background:#4ade80;color:#0e0e10;margin-top:0;">Green Channel</button>
+                <button class="btn-apply" onclick="applyFilter('color_channel',{channel:'B'})" style="background:#38bdf8;color:white;margin-top:0;">Blue Channel</button>
             </div>
         </div>
 
@@ -304,17 +337,17 @@
             <p class="section-label">Histogram Before</p>
             <div class="hist-container">
                 {% if hist_original %}
-                <img id="img-hist-ori" src="/{{ hist_original }}?t={{ range(1, 99999) | random }}">
+                <img id="img-hist-ori" src="{{ hist_original }}">
                 {% else %}
-                <span style="font-size:11px; color:var(--text-3)">Belum ada citra terunggah</span>
+                <span style="font-size:11px;color:var(--text-3)">Belum ada citra terunggah</span>
                 {% endif %}
             </div>
             <p class="section-label" style="margin-top:20px;">Histogram After</p>
             <div class="hist-container">
                 {% if hist_processed %}
-                <img id="img-hist-proc" src="/{{ hist_processed }}?t={{ range(1, 99999) | random }}">
+                <img id="img-hist-proc" src="{{ hist_processed }}">
                 {% else %}
-                <span style="font-size:11px; color:var(--text-3)">Belum ada hasil modifikasi</span>
+                <span style="font-size:11px;color:var(--text-3)">Belum ada hasil modifikasi</span>
                 {% endif %}
             </div>
         </div>
@@ -322,57 +355,36 @@
         <!-- TAB TEXT -->
         <div id="tab-text" class="tab-content panel-section">
             <p class="section-label">Tambah Teks ke Gambar</p>
-
             <div class="info-box">
-                <p><i class="fa-solid fa-circle-info"></i>Ketik teks, atur ukuran dan warna, lalu tentukan posisi X/Y pada gambar (piksel dari sudut kiri atas).</p>
+                <p><i class="fa-solid fa-hand-pointer"></i>Isi teks di bawah, lalu <b style="color:var(--text-1)">klik posisi manapun</b> pada gambar untuk menempatkan teks.</p>
             </div>
-
-            <div style="background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px;">
-
+            <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px;">
                 <div class="input-group">
                     <label class="input-label">Isi Teks</label>
                     <input type="text" id="input-text" placeholder="Ketik teks di sini..." class="input-field">
                 </div>
-
                 <div class="input-group">
                     <label class="input-label">Ukuran Font</label>
                     <div class="slider-row">
                         <input type="range" id="range-fontsize" min="10" max="120" value="32"
-                            oninput="document.getElementById('val-fontsize').textContent=this.value+'px'">
+                            oninput="document.getElementById('val-fontsize').textContent=this.value+'px'; updateTextPreview()">
                         <span id="val-fontsize">32px</span>
                     </div>
                 </div>
-
                 <div class="input-group">
                     <label class="input-label">Warna Teks</label>
-                    <div style="display:flex; gap:10px; align-items:center; margin-top:4px;">
-                        <input type="color" id="input-textcolor" value="#ffffff"
-                            style="width:44px; height:36px; border:2px solid var(--border); border-radius:8px; cursor:pointer; background:none; padding:2px;">
-                        <div>
-                            <p style="font-size:11px; color:var(--text-2); font-weight:600;">Pilih Warna</p>
-                            <p style="font-size:10px; color:var(--text-3);">Klik kotak untuk membuka color picker</p>
-                        </div>
+                    <div style="display:flex;gap:10px;align-items:center;margin-top:4px;">
+                        <input type="color" id="input-textcolor" value="#ffffff" onchange="updateTextPreview()"
+                            style="width:44px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;background:none;padding:2px;">
+                        <p style="font-size:11px;color:var(--text-3);">Klik kotak untuk pilih warna</p>
                     </div>
                 </div>
-
-                <div class="input-group" style="margin-top:4px;">
-                    <label class="input-label">Posisi pada Gambar</label>
-                    <div class="grid-2" style="margin-top:4px;">
-                        <div>
-                            <label class="input-label" style="font-size:9px;">X (horizontal)</label>
-                            <input type="number" id="text-x" value="20" min="0" class="input-field">
-                        </div>
-                        <div>
-                            <label class="input-label" style="font-size:9px;">Y (vertikal)</label>
-                            <input type="number" id="text-y" value="50" min="0" class="input-field">
-                        </div>
-                    </div>
-                </div>
-
-                <button class="btn-apply" style="margin-top:8px;" onclick="applyAddText()">
-                    <i class="fa-solid fa-font"></i> Tambahkan Teks ke Gambar
+                <button class="btn-apply" id="btn-text-mode" onclick="startTextMode()">
+                    <i class="fa-solid fa-crosshairs"></i> Aktifkan Mode Teks → Klik Gambar
                 </button>
-
+                <button class="btn-secondary" id="btn-text-cancel" onclick="stopTextMode()" style="display:none;">
+                    <i class="fa-solid fa-xmark"></i> Batalkan Mode Teks
+                </button>
             </div>
         </div>
 
@@ -389,30 +401,29 @@
                 </div>
             </div>
             <div class="topbar-right">
-                <button class="btn-icon-only" title="Zoom In"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-                <button class="btn-icon-only" title="Zoom Out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
-                <button class="btn-icon-only" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
-                <button class="btn-icon-only" title="Redo"><i class="fa-solid fa-rotate-right"></i></button>
+                <button class="btn-icon-only {% if can_undo %}has-history{% endif %}"
+                    id="undo-btn" title="Undo" onclick="doUndo()">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </button>
                 <div class="divider-v"></div>
                 {% if processed_image %}
                 <a href="/download" style="text-decoration:none;">
                     <button class="btn-download"><i class="fa-solid fa-download"></i> Simpan Gambar</button>
                 </a>
                 {% else %}
-                <button class="btn-download" style="opacity:0.5; cursor:not-allowed;" disabled>
+                <button class="btn-download" style="opacity:0.5;cursor:not-allowed;" disabled>
                     <i class="fa-solid fa-download"></i> Simpan Gambar
                 </button>
                 {% endif %}
             </div>
         </header>
 
-        <div class="canvas-zone">
+        <div class="canvas-zone" id="canvasZone">
             {% if not original_image %}
+            <!-- ── UPLOAD STATE ── -->
             <div class="upload-state" id="uploadState">
                 <div class="upload-card">
-                    <div class="upload-icon-ring">
-                        <i class="fa-solid fa-cloud-arrow-up"></i>
-                    </div>
+                    <div class="upload-icon-ring"><i class="fa-solid fa-cloud-arrow-up"></i></div>
                     <h2>Unggah foto untuk mulai mengedit</h2>
                     <p>Mendukung format JPG, PNG, atau BMP · Maks 20MB</p>
                     <form action="/upload" method="post" enctype="multipart/form-data" id="uploadForm">
@@ -432,21 +443,15 @@
                     </div>
                 </div>
                 <div class="floating-pills">
-                    <div class="pill" onclick="document.getElementById('fileInput').click()">
-                        <i class="fa-solid fa-image"></i> Grayscale
-                    </div>
-                    <div class="pill" onclick="document.getElementById('fileInput').click()">
-                        <i class="fa-solid fa-droplet"></i> Blur
-                    </div>
-                    <div class="pill" onclick="document.getElementById('fileInput').click()">
-                        <i class="fa-solid fa-border-all"></i> Edge Detection
-                    </div>
-                    <div class="pill" onclick="document.getElementById('fileInput').click()">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> Sharpening
-                    </div>
+                    <div class="pill" onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-image"></i> Grayscale</div>
+                    <div class="pill" onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-droplet"></i> Blur</div>
+                    <div class="pill" onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-border-all"></i> Edge Detection</div>
+                    <div class="pill" onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-wand-magic-sparkles"></i> Sharpening</div>
                 </div>
             </div>
+
             {% else %}
+            <!-- ── PREVIEW STATE ── -->
             <div class="preview-state">
                 <div class="preview-label-row">
                     <span class="preview-badge original">Sebelum (Original)</span>
@@ -454,17 +459,31 @@
                     <span class="preview-badge processed">Sesudah (Hasil Edit)</span>
                 </div>
                 <div class="preview-panels">
+                    <!-- Panel Original -->
                     <div class="panel-box">
                         <div class="image-frame">
-                            <img src="/{{ original_image }}" alt="Original">
+                            <img id="img-original" src="{{ original_image }}" alt="Original">
                         </div>
                     </div>
                     <div class="panel-divider"><i class="fa-solid fa-arrows-left-right"></i></div>
-                    <div class="panel-box">
-                        <div class="image-frame">
-                            <img id="display-processed"
-                                src="/{{ processed_image }}?t={{ range(1, 9999) | random }}"
-                                alt="Processed">
+                    <!-- Panel Processed + Overlay -->
+                    <div class="panel-box" style="position:relative; overflow:hidden;">
+                        <div class="canvas-wrapper" id="canvasWrapper">
+                            <img id="display-processed" src="{{ processed_image }}" alt="Processed"
+                                style="max-width:100%;max-height:100%;object-fit:contain;border-radius:6px;display:block;">
+                            <!-- Crop overlay -->
+                            <div id="crop-overlay">
+                                <div id="crop-selection"></div>
+                            </div>
+                            <!-- Crop toolbar -->
+                            <div class="crop-toolbar" id="crop-toolbar">
+                                <button class="crop-btn confirm" onclick="confirmCrop()"><i class="fa-solid fa-check"></i> Crop</button>
+                                <button class="crop-btn cancel"  onclick="cancelCrop()"><i class="fa-solid fa-xmark"></i> Batal</button>
+                            </div>
+                            <!-- Text overlay -->
+                            <div id="text-overlay">
+                                <div id="text-preview"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -480,110 +499,287 @@
 </div>
 
 <script>
-    // =============================================
-    // TAB SWITCHING
-    // =============================================
-    document.querySelectorAll('.rail-btn[data-tab]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchTab(btn.dataset.tab);
-        });
+// =============================================
+// TAB SWITCHING
+// =============================================
+document.querySelectorAll('.rail-btn[data-tab]').forEach(btn => {
+    btn.addEventListener('click', e => {
+        e.preventDefault();
+        switchTab(btn.dataset.tab);
     });
+});
+function switchTab(tabId) {
+    document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    const tab = document.getElementById(tabId);
+    if (tab) tab.classList.add('active');
+    const btn = document.querySelector(`.rail-btn[data-tab="${tabId}"]`);
+    if (btn) btn.classList.add('active');
+}
 
-    function switchTab(tabId) {
-        document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        const targetTab = document.getElementById(tabId);
-        if (targetTab) targetTab.classList.add('active');
-        const targetBtn = document.querySelector(`.rail-btn[data-tab="${tabId}"]`);
-        if (targetBtn) targetBtn.classList.add('active');
-    }
-
-    // =============================================
-    // AJAX FILTER UTAMA
-    // =============================================
-    function applyFilter(actionName, parameterObject = {}) {
-        const statusNode = document.getElementById('status-loading');
-        if (statusNode) statusNode.textContent = "Sedang memproses...";
-
-        fetch('/api/process', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: actionName, params: parameterObject })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.processed_image) {
-                const d = new Date();
-                const imageNode = document.getElementById('display-processed');
-                if (imageNode) imageNode.src = "/" + data.processed_image + "?t=" + d.getTime();
-                if (statusNode) statusNode.textContent = "Proses selesai ✓";
-                if (data.reload_hist) {
-                    const hO = document.getElementById('img-hist-ori');
-                    const hP = document.getElementById('img-hist-proc');
-                    if (hO) hO.src = "/static/outputs/hist_ori.png?t=" + d.getTime();
-                    if (hP) hP.src = "/static/outputs/hist_proc.png?t=" + d.getTime();
-                }
-            } else if (data.error) {
-                if (statusNode) statusNode.textContent = "Error: " + data.error;
-            }
-        })
-        .catch(err => {
-            if (statusNode) statusNode.textContent = "Koneksi error!";
-            console.error(err);
-        });
-    }
-
-    // =============================================
-    // CROP MANUAL
-    // =============================================
-    function applyCropManual() {
-        const x = parseInt(document.getElementById('crop-x').value) || 0;
-        const y = parseInt(document.getElementById('crop-y').value) || 0;
-        const w = parseInt(document.getElementById('crop-w').value) || 200;
-        const h = parseInt(document.getElementById('crop-h').value) || 200;
-        if (w <= 0 || h <= 0) {
-            alert('Lebar dan tinggi harus lebih dari 0!');
-            return;
+// =============================================
+// AJAX FILTER UTAMA
+// =============================================
+function applyFilter(actionName, parameterObject = {}) {
+    setStatus('processing');
+    fetch('/api/process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: actionName, params: parameterObject })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) { setStatus('error', data.error); return; }
+        updateProcessed(data.processed_image);
+        if (data.hist_proc) {
+            const hp = document.getElementById('img-hist-proc');
+            if (hp) hp.src = data.hist_proc;
         }
-        applyFilter('crop_manual', { x: x, y: y, w: w, h: h });
-    }
+        updateUndoBtn(data.can_undo);
+        setStatus('done');
+    })
+    .catch(err => { setStatus('error', 'Koneksi error'); console.error(err); });
+}
 
-    // =============================================
-    // TAMBAH TEKS
-    // =============================================
-    function applyAddText() {
-        const text = document.getElementById('input-text').value.trim();
-        if (!text) {
-            alert('Teks tidak boleh kosong!');
-            document.getElementById('input-text').focus();
-            return;
-        }
-        const size  = parseInt(document.getElementById('range-fontsize').value) || 32;
-        const x     = parseInt(document.getElementById('text-x').value) || 20;
-        const y     = parseInt(document.getElementById('text-y').value) || 50;
-        const color = document.getElementById('input-textcolor').value || '#ffffff';
-        applyFilter('add_text', { text: text, size: size, x: x, y: y, color: color });
-    }
+function updateProcessed(src) {
+    const img = document.getElementById('display-processed');
+    if (img && src) img.src = src;
+}
 
-    // =============================================
-    // BRIGHTNESS & CONTRAST SLIDER
-    // =============================================
-    function updateSliderVal(slider) {
-        if (slider.id === "range-brightness") {
-            document.getElementById("val-brightness").textContent = slider.value;
-        }
-        if (slider.id === "range-contrast") {
-            document.getElementById("val-contrast").textContent = (slider.value / 10).toFixed(1);
-        }
-    }
+function setStatus(state, msg) {
+    const el = document.getElementById('status-loading');
+    if (!el) return;
+    el.className = 'zoom-info';
+    if (state === 'processing') { el.classList.add('status-processing'); el.textContent = 'Memproses...'; }
+    else if (state === 'done')  { el.classList.add('status-done');       el.textContent = 'Selesai ✓'; }
+    else if (state === 'error') { el.classList.add('status-error');      el.textContent = msg || 'Error!'; }
+}
 
-    function handleBrightnessContrast(slider) {
-        updateSliderVal(slider);
-        const brightness = document.getElementById("range-brightness").value;
-        const contrast   = document.getElementById("range-contrast").value / 10;
-        applyFilter("brightness_contrast", { brightness: brightness, contrast: contrast });
+// =============================================
+// UNDO
+// =============================================
+function updateUndoBtn(canUndo) {
+    const btn = document.getElementById('undo-btn');
+    if (!btn) return;
+    if (canUndo) btn.classList.add('has-history');
+    else btn.classList.remove('has-history');
+}
+
+function doUndo() {
+    setStatus('processing');
+    fetch('/api/undo', { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) { setStatus('error', data.error); return; }
+        updateProcessed(data.processed_image);
+        if (data.hist_proc) {
+            const hp = document.getElementById('img-hist-proc');
+            if (hp) hp.src = data.hist_proc;
+        }
+        updateUndoBtn(data.can_undo);
+        setStatus('done');
+    })
+    .catch(err => { setStatus('error', 'Koneksi error'); console.error(err); });
+}
+
+// =============================================
+// BRIGHTNESS & CONTRAST
+// =============================================
+function updateSliderVal(slider) {
+    if (slider.id === 'range-brightness')
+        document.getElementById('val-brightness').textContent = slider.value;
+    if (slider.id === 'range-contrast')
+        document.getElementById('val-contrast').textContent = (slider.value / 10).toFixed(1);
+}
+function handleBrightnessContrast(slider) {
+    updateSliderVal(slider);
+    const b = document.getElementById('range-brightness').value;
+    const c = document.getElementById('range-contrast').value / 10;
+    applyFilter('brightness_contrast', { brightness: b, contrast: c });
+}
+
+// =============================================
+// CROP — DRAG TO SELECT
+// =============================================
+let cropMode   = false;
+let cropStart  = null;
+let cropRect   = {};
+
+function getImgRect() {
+    const img = document.getElementById('display-processed');
+    if (!img) return null;
+    return img.getBoundingClientRect();
+}
+
+function startCropMode() {
+    if (!document.getElementById('crop-overlay')) return;
+    cancelTextMode();
+    cropMode = true;
+    cropStart = null;
+    cropRect  = {};
+    const overlay = document.getElementById('crop-overlay');
+    const sel     = document.getElementById('crop-selection');
+    const toolbar = document.getElementById('crop-toolbar');
+    overlay.classList.add('active');
+    sel.style.display    = 'none';
+    toolbar.classList.remove('visible');
+    setStatus('done');
+    document.getElementById('status-loading').textContent = 'Mode Crop — Drag pada gambar';
+
+    overlay.onmousedown = onCropMouseDown;
+    overlay.onmousemove = onCropMouseMove;
+    overlay.onmouseup   = onCropMouseUp;
+}
+
+function onCropMouseDown(e) {
+    const imgRect = getImgRect();
+    if (!imgRect) return;
+    const ox = e.clientX - imgRect.left;
+    const oy = e.clientY - imgRect.top;
+    if (ox < 0 || oy < 0 || ox > imgRect.width || oy > imgRect.height) return;
+    cropStart = { x: ox, y: oy };
+    const sel = document.getElementById('crop-selection');
+    sel.style.display = 'block';
+    sel.style.left    = ox + 'px';
+    sel.style.top     = oy + 'px';
+    sel.style.width   = '0px';
+    sel.style.height  = '0px';
+}
+
+function onCropMouseMove(e) {
+    if (!cropStart) return;
+    const imgRect = getImgRect();
+    if (!imgRect) return;
+    const cx = Math.max(0, Math.min(e.clientX - imgRect.left, imgRect.width));
+    const cy = Math.max(0, Math.min(e.clientY - imgRect.top,  imgRect.height));
+    const x  = Math.min(cropStart.x, cx);
+    const y  = Math.min(cropStart.y, cy);
+    const w  = Math.abs(cx - cropStart.x);
+    const h  = Math.abs(cy - cropStart.y);
+    const sel = document.getElementById('crop-selection');
+    sel.style.left   = x + 'px';
+    sel.style.top    = y + 'px';
+    sel.style.width  = w + 'px';
+    sel.style.height = h + 'px';
+    cropRect = { x, y, w, h };
+}
+
+function onCropMouseUp(e) {
+    if (!cropStart) return;
+    cropStart = null;
+    if (cropRect.w > 5 && cropRect.h > 5) {
+        document.getElementById('crop-toolbar').classList.add('visible');
     }
+}
+
+function confirmCrop() {
+    if (!cropRect.w || !cropRect.h) return;
+    const img     = document.getElementById('display-processed');
+    const imgRect = img.getBoundingClientRect();
+    // Hitung skala: ukuran tampil vs ukuran asli gambar
+    const scaleX  = img.naturalWidth  / imgRect.width;
+    const scaleY  = img.naturalHeight / imgRect.height;
+    const realX   = Math.round(cropRect.x * scaleX);
+    const realY   = Math.round(cropRect.y * scaleY);
+    const realW   = Math.round(cropRect.w * scaleX);
+    const realH   = Math.round(cropRect.h * scaleY);
+    cancelCrop();
+    applyFilter('crop_manual', { x: realX, y: realY, w: realW, h: realH });
+}
+
+function cancelCrop() {
+    cropMode  = false;
+    cropStart = null;
+    cropRect  = {};
+    const overlay = document.getElementById('crop-overlay');
+    const sel     = document.getElementById('crop-selection');
+    const toolbar = document.getElementById('crop-toolbar');
+    if (overlay) { overlay.classList.remove('active'); overlay.onmousedown = null; overlay.onmousemove = null; overlay.onmouseup = null; }
+    if (sel)     sel.style.display = 'none';
+    if (toolbar) toolbar.classList.remove('visible');
+    document.getElementById('status-loading').textContent = 'Siap diproses';
+}
+
+// =============================================
+// TEXT — CLICK TO PLACE
+// =============================================
+let textMode = false;
+
+function startTextMode() {
+    const text = document.getElementById('input-text').value.trim();
+    if (!text) { alert('Isi teks dulu sebelum mengaktifkan mode teks!'); document.getElementById('input-text').focus(); return; }
+    cancelCrop();
+    textMode = true;
+    const overlay = document.getElementById('text-overlay');
+    if (!overlay) return;
+    overlay.classList.add('active');
+    document.getElementById('btn-text-mode').style.display   = 'none';
+    document.getElementById('btn-text-cancel').style.display = 'block';
+    document.getElementById('status-loading').textContent    = 'Mode Teks — Klik posisi pada gambar';
+
+    updateTextPreview();
+
+    overlay.onmousemove = onTextMouseMove;
+    overlay.onclick     = onTextClick;
+}
+
+function stopTextMode() {
+    textMode = false;
+    const overlay = document.getElementById('text-overlay');
+    const preview = document.getElementById('text-preview');
+    if (overlay) { overlay.classList.remove('active'); overlay.onmousemove = null; overlay.onclick = null; }
+    if (preview) preview.style.display = 'none';
+    document.getElementById('btn-text-mode').style.display   = 'block';
+    document.getElementById('btn-text-cancel').style.display = 'none';
+    document.getElementById('status-loading').textContent    = 'Siap diproses';
+}
+
+function cancelTextMode() { if (textMode) stopTextMode(); }
+
+function updateTextPreview() {
+    const preview  = document.getElementById('text-preview');
+    if (!preview) return;
+    const text     = document.getElementById('input-text') ? document.getElementById('input-text').value || 'Teks' : 'Teks';
+    const size     = document.getElementById('range-fontsize') ? document.getElementById('range-fontsize').value : 32;
+    const color    = document.getElementById('input-textcolor') ? document.getElementById('input-textcolor').value : '#ffffff';
+    preview.textContent  = text;
+    preview.style.fontSize   = size + 'px';
+    preview.style.color      = color;
+}
+
+function onTextMouseMove(e) {
+    const preview  = document.getElementById('text-preview');
+    const overlay  = document.getElementById('text-overlay');
+    if (!preview || !overlay) return;
+    const rect = overlay.getBoundingClientRect();
+    const x    = e.clientX - rect.left;
+    const y    = e.clientY - rect.top;
+    preview.style.display = 'block';
+    preview.style.left    = x + 'px';
+    preview.style.top     = y + 'px';
+}
+
+function onTextClick(e) {
+    const img     = document.getElementById('display-processed');
+    const overlay = document.getElementById('text-overlay');
+    if (!img || !overlay) return;
+    const imgRect = img.getBoundingClientRect();
+    const ox      = e.clientX - imgRect.left;
+    const oy      = e.clientY - imgRect.top;
+    if (ox < 0 || oy < 0 || ox > imgRect.width || oy > imgRect.height) return;
+
+    const scaleX  = img.naturalWidth  / imgRect.width;
+    const scaleY  = img.naturalHeight / imgRect.height;
+    const realX   = Math.round(ox * scaleX);
+    const realY   = Math.round(oy * scaleY);
+
+    const text    = document.getElementById('input-text').value.trim() || 'Teks';
+    const size    = parseInt(document.getElementById('range-fontsize').value) || 32;
+    const color   = document.getElementById('input-textcolor').value || '#ffffff';
+
+    stopTextMode();
+    applyFilter('add_text', { text, size, x: realX, y: realY, color });
+}
 </script>
 </body>
 </html>
