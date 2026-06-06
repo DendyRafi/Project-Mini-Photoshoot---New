@@ -148,9 +148,14 @@ def download_image():
     if image_state['current'] is None:
         return redirect(url_for('index'))
 
-    fmt = request.args.get('format', 'png').lower()
+    fmt      = request.args.get('format', 'png').lower()
+    filename = request.args.get('filename', 'hasil-edit').strip()
     if fmt not in ['png', 'jpg', 'bmp']:
         fmt = 'png'
+    # Bersihkan karakter berbahaya dari filename
+    filename = "".join(c for c in filename if c.isalnum() or c in ('-', '_')).strip()
+    if not filename:
+        filename = 'hasil-edit'
 
     img = image_state['current']
     if len(img.shape) == 2:
@@ -164,12 +169,11 @@ def download_image():
     if not success:
         return redirect(url_for('index'))
 
-    base = os.path.splitext(image_state['filename'])[0]
     return send_file(
         io.BytesIO(buffer.tobytes()),
         mimetype=mime,
         as_attachment=True,
-        download_name=f"photolab_{base}{ext}"
+        download_name=f"{filename}{ext}"
     )
 
 # =============================================
@@ -215,12 +219,19 @@ def process_image_api():
     if image_state['current'] is None:
         return jsonify({'error': 'Belum ada gambar'}), 400
 
-    data   = request.json
+    data = request.json
     action = data.get('action')
     params = data.get('params', {})
 
     # Baca dari STATE TERAKHIR (bukan original) — ini yang membuat efek stack
-    img = image_state['current'].copy()
+    is_preview = params.get('_preview', False)
+
+    # Preview mode: baca dari original, jangan push history
+    if is_preview:
+        img = image_state['original'].copy()
+    else:
+        push_history(image_state['current'])
+        img = image_state['current'].copy()
 
     # Jika gambar grayscale (2D), konversi ke BGR untuk proses yang butuh warna
     if len(img.shape) == 2:
@@ -494,8 +505,8 @@ def process_image_api():
         return jsonify({'error': f'Action tidak dikenal: {action}'}), 400
 
     # ---- SIMPAN KE HISTORY & UPDATE STATE ----
-    push_history(image_state['current'])
-    image_state['current'] = out_img
+    if not is_preview:
+        image_state['current'] = out_img
 
     # ---- ENCODE KE BASE64 & KIRIM ----
     current_b64  = numpy_to_base64(out_img)

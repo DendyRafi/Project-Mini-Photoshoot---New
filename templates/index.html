@@ -32,7 +32,7 @@
         .info-box i { color: var(--accent); margin-right: 4px; }
 
         /* CROP OVERLAY */
-        .canvas-wrapper { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+        .canvas-wrapper { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; z-index: 10; display: none; }
         #crop-overlay.active { display: block; }
         #crop-selection { position: absolute; border: 2px dashed var(--accent); background: rgba(168,255,87,0.08); pointer-events: none; display: none; box-shadow: 0 0 0 9999px rgba(0,0,0,0.45); }
@@ -45,35 +45,34 @@
         .crop-btn.cancel:hover { background: var(--bg-card-h); color: var(--text-1); }
 
         /* TEXT OVERLAY */
-        #text-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; z-index: 10; display: none; }
+        #text-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; z-index: 11; display: none; }
         #text-overlay.active { display: block; }
         #text-preview { position: absolute; pointer-events: none; font-family: 'Arial', sans-serif; font-weight: bold; text-shadow: 2px 2px 0 rgba(0,0,0,0.8); white-space: nowrap; display: none; z-index: 15; transform: translate(-50%, -50%); }
 
-        /* UNDO */
-        #undo-btn { position: relative; }
         #undo-btn.has-history { color: var(--accent) !important; }
-
-        /* STATUS */
         .status-processing { color: var(--orange) !important; }
         .status-done { color: var(--accent) !important; }
         .status-error { color: var(--red) !important; }
+
+        /* SEARCH */
+        #search-results { display: none; }
+        #search-results .tools-grid { grid-template-columns: 1fr 1fr; }
     </style>
 </head>
 <body>
-
 <div class="app-shell">
 
     <!-- ICON RAIL -->
     <nav class="icon-rail">
         <div class="rail-logo"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
         <div class="rail-links">
-            <a href="#" class="rail-btn active" data-tab="tab-dasar"       data-tip="Dasar"><i class="fa-solid fa-layer-group"></i></a>
-            <a href="#" class="rail-btn"         data-tab="tab-adjust"      data-tip="Adjust"><i class="fa-solid fa-sliders"></i></a>
-            <a href="#" class="rail-btn"         data-tab="tab-filter"      data-tip="Filter"><i class="fa-solid fa-wand-magic"></i></a>
-            <a href="#" class="rail-btn"         data-tab="tab-transform"   data-tip="Transform"><i class="fa-solid fa-crop-simple"></i></a>
-            <a href="#" class="rail-btn"         data-tab="tab-segmentasi"  data-tip="Segmentasi"><i class="fa-solid fa-object-group"></i></a>
-            <a href="#" class="rail-btn"         data-tab="tab-histogram"   data-tip="Histogram"><i class="fa-solid fa-chart-bar"></i></a>
-            <a href="#" class="rail-btn"         data-tab="tab-text"        data-tip="Teks"><i class="fa-solid fa-font"></i></a>
+            <a href="#" class="rail-btn active" data-tab="tab-dasar"      data-tip="Dasar"><i class="fa-solid fa-layer-group"></i></a>
+            <a href="#" class="rail-btn"         data-tab="tab-adjust"     data-tip="Adjust"><i class="fa-solid fa-sliders"></i></a>
+            <a href="#" class="rail-btn"         data-tab="tab-filter"     data-tip="Filter"><i class="fa-solid fa-wand-magic"></i></a>
+            <a href="#" class="rail-btn"         data-tab="tab-transform"  data-tip="Transform"><i class="fa-solid fa-crop-simple"></i></a>
+            <a href="#" class="rail-btn"         data-tab="tab-segmentasi" data-tip="Segmentasi"><i class="fa-solid fa-object-group"></i></a>
+            <a href="#" class="rail-btn"         data-tab="tab-histogram"  data-tip="Histogram"><i class="fa-solid fa-chart-bar"></i></a>
+            <a href="#" class="rail-btn"         data-tab="tab-text"       data-tip="Teks"><i class="fa-solid fa-font"></i></a>
         </div>
         <div class="rail-bottom">
             <a href="/reset" class="rail-btn danger" data-tip="Reset"><i class="fa-solid fa-rotate-left"></i></a>
@@ -84,35 +83,38 @@
     <aside class="tools-panel">
         <div class="panel-search">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" placeholder="Cari fitur...">
+            <input type="text" id="search-input" placeholder="Cari fitur...">
         </div>
+
+        <!-- SEARCH RESULTS -->
+        <div id="search-results" class="panel-section"></div>
 
         <!-- TAB DASAR -->
         <div id="tab-dasar" class="tab-content active panel-section">
             <p class="section-label">Rekomendasi</p>
             <div class="tools-grid">
-                <div class="tool-card" onclick="applyFilter('grayscale')">
+                <div class="tool-card" data-action="applyFilter('grayscale')">
                     <div class="card-thumb grayscale-thumb">
                         <div class="thumb-split"><div class="split-color"></div><div class="split-gray"></div></div>
                         <div class="card-badge">Dasar</div>
                     </div>
                     <span class="card-label">Grayscale</span>
                 </div>
-                <div class="tool-card" onclick="applyFilter('blur_filter',{type:'gaussian',kernel:9})">
+                <div class="tool-card" data-action="applyFilter('blur_filter',{type:'gaussian',kernel:9})">
                     <div class="card-thumb blur-thumb">
                         <div class="thumb-blur-demo"><div class="blur-circle c1"></div><div class="blur-circle c2"></div></div>
                         <div class="card-badge">Dasar</div>
                     </div>
                     <span class="card-label">Smoothing</span>
                 </div>
-                <div class="tool-card" onclick="applyFilter('sharpening')">
+                <div class="tool-card" data-action="applyFilter('sharpening')">
                     <div class="card-thumb sharp-thumb">
                         <div class="sharp-lines"><div class="sline"></div><div class="sline"></div></div>
                         <div class="card-badge">Dasar</div>
                     </div>
                     <span class="card-label">Sharpening</span>
                 </div>
-                <div class="tool-card" onclick="applyFilter('edge_detection',{method:'canny'})">
+                <div class="tool-card" data-action="applyFilter('edge_detection',{method:'canny'})">
                     <div class="card-thumb edge-thumb">
                         <div class="edge-rect" style="border-color:var(--accent)"></div>
                         <div class="card-badge">Dasar</div>
@@ -123,19 +125,19 @@
 
             <p class="section-label" style="margin-top:20px;">Adjust & Warna</p>
             <div class="tools-grid">
-                <div class="tool-card" onclick="switchTab('tab-adjust')">
+                <div class="tool-card" data-action="switchTab('tab-adjust')">
                     <div class="card-thumb brightness-thumb"><div class="bright-gradient"></div><div class="card-badge">Adjust</div></div>
                     <span class="card-label">Brightness</span>
                 </div>
-                <div class="tool-card" onclick="switchTab('tab-adjust')">
+                <div class="tool-card" data-action="switchTab('tab-adjust')">
                     <div class="card-thumb contrast-thumb"><div class="contrast-half h1"></div><div class="contrast-half h2"></div><div class="card-badge">Adjust</div></div>
                     <span class="card-label">Contrast</span>
                 </div>
-                <div class="tool-card" onclick="switchTab('tab-adjust')">
+                <div class="tool-card" data-action="switchTab('tab-adjust')">
                     <div class="card-thumb saturation-thumb"><div class="sat-ring r1"></div><div class="sat-ring r2"></div><div class="card-badge">Adjust</div></div>
                     <span class="card-label">Saturation</span>
                 </div>
-                <div class="tool-card" onclick="switchTab('tab-adjust')">
+                <div class="tool-card" data-action="switchTab('tab-adjust')">
                     <div class="card-thumb hue-thumb"><div class="hue-wheel"></div><div class="card-badge">Adjust</div></div>
                     <span class="card-label">Hue Rotate</span>
                 </div>
@@ -143,14 +145,14 @@
 
             <p class="section-label" style="margin-top:20px;">Transform</p>
             <div class="tools-grid">
-                <div class="tool-card" onclick="switchTab('tab-transform')">
+                <div class="tool-card" data-action="switchTab('tab-transform')">
                     <div class="card-thumb crop-thumb" style="display:flex;align-items:center;justify-content:center;">
                         <i class="fa-solid fa-crop-simple crop-icon-demo" style="font-size:26px;"></i>
                         <div class="card-badge">Transform</div>
                     </div>
                     <span class="card-label">Crop</span>
                 </div>
-                <div class="tool-card" onclick="switchTab('tab-transform')">
+                <div class="tool-card" data-action="switchTab('tab-transform')">
                     <div class="card-thumb rotate-thumb" style="display:flex;align-items:center;justify-content:center;">
                         <i class="fa-solid fa-rotate-right rotate-icon-demo" style="font-size:26px;"></i>
                         <div class="card-badge">Transform</div>
@@ -166,14 +168,16 @@
             <div class="control-group">
                 <label>Brightness</label>
                 <div class="slider-row">
-                    <input type="range" id="range-brightness" min="-100" max="100" value="0" oninput="handleBrightnessContrast(this)">
+                    <input type="range" id="range-brightness" min="-100" max="100" value="0"
+                        oninput="handleBrightnessContrast(this)">
                     <span id="val-brightness">0</span>
                 </div>
             </div>
             <div class="control-group">
                 <label>Contrast</label>
                 <div class="slider-row">
-                    <input type="range" id="range-contrast" min="5" max="30" value="10" oninput="handleBrightnessContrast(this)">
+                    <input type="range" id="range-contrast" min="5" max="30" value="10"
+                        oninput="handleBrightnessContrast(this)">
                     <span id="val-contrast">1.0</span>
                 </div>
             </div>
@@ -181,7 +185,7 @@
                 <label>Saturation</label>
                 <div class="slider-row">
                     <input type="range" id="range-saturation" min="0" max="30" value="10" step="1"
-                        oninput="document.getElementById('val-saturation').textContent=(this.value/10).toFixed(1); applyFilter('saturation',{value:this.value/10})">
+                        oninput="document.getElementById('val-saturation').textContent=(this.value/10).toFixed(1); applyFilterPreview('saturation',{value:this.value/10})">
                     <span id="val-saturation">1.0</span>
                 </div>
             </div>
@@ -189,7 +193,7 @@
                 <label>Hue Rotate</label>
                 <div class="slider-row">
                     <input type="range" id="range-hue" min="0" max="180" value="0"
-                        oninput="document.getElementById('val-hue').textContent=this.value+'°'; applyFilter('hue_rotate',{angle:this.value})">
+                        oninput="document.getElementById('val-hue').textContent=this.value+'°'; applyFilterPreview('hue_rotate',{angle:this.value})">
                     <span id="val-hue">0°</span>
                 </div>
             </div>
@@ -205,14 +209,14 @@
         <div id="tab-filter" class="tab-content panel-section">
             <p class="section-label">Smoothing & Restoration</p>
             <div class="tools-grid">
-                <div class="tool-card" onclick="applyFilter('blur_filter',{type:'gaussian',kernel:9})">
+                <div class="tool-card" data-action="applyFilter('blur_filter',{type:'gaussian',kernel:9})">
                     <div class="card-thumb blur-thumb">
                         <div class="thumb-blur-demo"><div class="blur-circle c1"></div><div class="blur-circle c2"></div></div>
                         <div class="card-badge">Filter</div>
                     </div>
                     <span class="card-label">Gaussian Blur</span>
                 </div>
-                <div class="tool-card" onclick="applyFilter('blur_filter',{type:'median',kernel:5})">
+                <div class="tool-card" data-action="applyFilter('blur_filter',{type:'median',kernel:5})">
                     <div class="card-thumb blur-thumb">
                         <div class="thumb-blur-demo"><div class="blur-circle c1"></div><div class="blur-circle c2"></div></div>
                         <div class="card-badge">Filter</div>
@@ -390,7 +394,7 @@
 
             <p class="section-label" style="margin-top:20px;">Edge-based</p>
             <div class="info-box">
-                <p><i class="fa-solid fa-circle-info"></i> Deteksi kontur objek menggunakan Canny edge dan ditampilkan sebagai garis hijau.</p>
+                <p><i class="fa-solid fa-circle-info"></i> Deteksi kontur objek menggunakan Canny edge, ditampilkan sebagai garis hijau.</p>
             </div>
             <button class="btn-apply" onclick="applyFilter('segmentation_edge')">
                 <i class="fa-solid fa-draw-polygon"></i> Segmentasi Edge (Kontur)
@@ -411,6 +415,22 @@
             <button class="btn-apply" onclick="applyFilter('compress_rle')">
                 <i class="fa-solid fa-file-zipper"></i> Simulasi RLE
             </button>
+
+            <p class="section-label" style="margin-top:20px;">Kompresi JPEG</p>
+            <div class="info-box">
+                <p><i class="fa-solid fa-circle-info"></i> Simulasi kompresi JPEG dengan kualitas berbeda. Semakin rendah = semakin kecil ukuran file.</p>
+            </div>
+            <div class="control-group">
+                <label>Kualitas (5% – 100%)</label>
+                <div class="slider-row">
+                    <input type="range" id="range-compress" min="5" max="100" value="80"
+                        oninput="document.getElementById('val-compress').textContent=this.value+'%'">
+                    <span id="val-compress">80%</span>
+                </div>
+            </div>
+            <button class="btn-apply" onclick="applyFilter('compress',{
+                quality: parseInt(document.getElementById('range-compress').value)
+            })"><i class="fa-solid fa-file-zipper"></i> Simulasi Kompresi JPEG</button>
         </div>
 
         <!-- TAB HISTOGRAM -->
@@ -483,12 +503,12 @@
             </div>
             <div class="topbar-right">
                 <button class="btn-icon-only {% if can_undo %}has-history{% endif %}"
-                    id="undo-btn" title="Undo perubahan terakhir" onclick="doUndo()"
+                    id="undo-btn" title="Undo" onclick="doUndo()"
                     style="display:flex;align-items:center;gap:5px;padding:0 10px;width:auto;">
                     <i class="fa-solid fa-rotate-left"></i>
                     <span style="font-size:11px;font-weight:600;">Undo</span>
                 </button>
-                <button class="btn-icon-only" title="Kembali ke gambar awal" onclick="doResetToOriginal()"
+                <button class="btn-icon-only" title="Reset ke gambar awal" onclick="doResetToOriginal()"
                     style="display:flex;align-items:center;gap:5px;padding:0 10px;width:auto;">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     <span style="font-size:11px;font-weight:600;">Reset Edit</span>
@@ -496,13 +516,17 @@
                 <div class="divider-v"></div>
                 {% if processed_image %}
                 <div style="display:flex;gap:6px;align-items:center;">
+                    <input type="text" id="input-filename" placeholder="nama-file"
+                        style="width:100px;background:var(--bg-card);border:1px solid var(--border);
+                        color:var(--text-1);padding:5px 8px;border-radius:99px;font-size:11px;
+                        outline:none;font-family:var(--font-body);">
                     <select id="select-format" class="input-field"
                         style="width:70px;padding:5px 8px;font-size:11px;border-radius:99px;">
                         <option value="png">PNG</option>
                         <option value="jpg">JPG</option>
                         <option value="bmp">BMP</option>
                     </select>
-                    <a id="btn-download-link" href="/download?format=png" style="text-decoration:none;">
+                    <a id="btn-download-link" href="/download?format=png&filename=hasil" style="text-decoration:none;">
                         <button class="btn-download" onclick="updateDownloadLink()">
                             <i class="fa-solid fa-download"></i> Simpan Gambar
                         </button>
@@ -546,7 +570,6 @@
                     <div class="pill" onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-wand-magic-sparkles"></i> Sharpening</div>
                 </div>
             </div>
-
             {% else %}
             <div class="preview-state">
                 <div class="preview-label-row">
@@ -565,12 +588,16 @@
                         <div class="canvas-wrapper" id="canvasWrapper">
                             <img id="display-processed" src="{{ processed_image }}" alt="Processed"
                                 style="max-width:100%;max-height:100%;object-fit:contain;border-radius:6px;display:block;">
-                            <div id="crop-overlay"><div id="crop-selection"></div></div>
+                            <div id="crop-overlay">
+                                <div id="crop-selection"></div>
+                            </div>
                             <div class="crop-toolbar" id="crop-toolbar">
                                 <button class="crop-btn confirm" onclick="confirmCrop()"><i class="fa-solid fa-check"></i> Crop</button>
                                 <button class="crop-btn cancel" onclick="cancelCrop()"><i class="fa-solid fa-xmark"></i> Batal</button>
                             </div>
-                            <div id="text-overlay"><div id="text-preview"></div></div>
+                            <div id="text-overlay">
+                                <div id="text-preview"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -587,14 +614,27 @@
 
 <script>
 // =============================================
+// TOOL CARD — event delegation (fix duplikat search)
+// =============================================
+document.addEventListener('click', function(e) {
+    const card = e.target.closest('.tool-card[data-action]');
+    if (card) {
+        const action = card.getAttribute('data-action');
+        if (action) eval(action);
+    }
+});
+
+// =============================================
 // TAB SWITCHING
 // =============================================
 document.querySelectorAll('.rail-btn[data-tab]').forEach(btn => {
     btn.addEventListener('click', e => {
         e.preventDefault();
+        clearSearch();
         switchTab(btn.dataset.tab);
     });
 });
+
 function switchTab(tabId) {
     document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -602,10 +642,144 @@ function switchTab(tabId) {
     if (tab) tab.classList.add('active');
     const btn = document.querySelector(`.rail-btn[data-tab="${tabId}"]`);
     if (btn) btn.classList.add('active');
+    document.getElementById('search-results').style.display = 'none';
+    document.getElementById('search-input').value = '';
 }
 
 // =============================================
-// AJAX FILTER UTAMA
+// TAB SWITCHING
+// =============================================
+let activeTabId = 'tab-dasar'; // track tab aktif
+
+document.querySelectorAll('.rail-btn[data-tab]').forEach(btn => {
+    btn.addEventListener('click', e => {
+        e.preventDefault();
+        clearSearch();
+        switchTab(btn.dataset.tab);
+    });
+});
+
+function switchTab(tabId) {
+    activeTabId = tabId;
+    // Sembunyikan search results
+    document.getElementById('search-results').style.display = 'none';
+    document.getElementById('search-input').value = '';
+    // Update rail button
+    document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('active'));
+    const activeBtn = document.querySelector(`.rail-btn[data-tab="${tabId}"]`);
+    if (activeBtn) activeBtn.classList.add('active');
+    // Update tab content
+    document.querySelectorAll('.tab-content').forEach(t => {
+        if (t.id === 'search-results') return;
+        t.classList.remove('active');
+        t.style.display = 'none';
+    });
+    const activeTab = document.getElementById(tabId);
+    if (activeTab) {
+        activeTab.classList.add('active');
+        activeTab.style.display = 'block';
+    }
+}
+
+// =============================================
+// SEARCH BAR
+// =============================================
+document.getElementById('search-input').addEventListener('input', function() {
+    const query = this.value.toLowerCase().trim();
+    if (!query) { clearSearch(); return; }
+
+    // Sembunyikan semua tab saat search
+    document.querySelectorAll('.tab-content').forEach(t => {
+        if (t.id !== 'search-results') t.style.display = 'none';
+    });
+
+    const allFeatures = [
+        { label: 'Grayscale',              action: "applyFilter('grayscale')" },
+        { label: 'Smoothing',              action: "applyFilter('blur_filter',{type:'gaussian',kernel:9})" },
+        { label: 'Sharpening',             action: "applyFilter('sharpening')" },
+        { label: 'Edge Canny',             action: "applyFilter('edge_detection',{method:'canny'})" },
+        { label: 'Brightness',             action: "switchTab('tab-adjust')" },
+        { label: 'Contrast',               action: "switchTab('tab-adjust')" },
+        { label: 'Saturation',             action: "switchTab('tab-adjust')" },
+        { label: 'Hue Rotate',             action: "switchTab('tab-adjust')" },
+        { label: 'Histogram Equalization', action: "applyFilter('histogram_equalization')" },
+        { label: 'Gaussian Blur',          action: "applyFilter('blur_filter',{type:'gaussian',kernel:9})" },
+        { label: 'Median Filter',          action: "applyFilter('blur_filter',{type:'median',kernel:5})" },
+        { label: 'Salt & Pepper',          action: "applyFilter('noise_saltpepper',{amount:0.02})" },
+        { label: 'Noise Removal',          action: "applyFilter('noise_removal_sp',{kernel:3})" },
+        { label: 'Threshold',              action: "switchTab('tab-filter')" },
+        { label: 'Sobel Edge',             action: "applyFilter('edge_detection',{method:'sobel'})" },
+        { label: 'Prewitt Edge',           action: "applyFilter('edge_detection',{method:'prewitt'})" },
+        { label: 'Robert Edge',            action: "applyFilter('edge_robert')" },
+        { label: 'Laplacian',              action: "applyFilter('edge_detection',{method:'laplacian'})" },
+        { label: 'Laplacian of Gaussian',  action: "applyFilter('edge_log')" },
+        { label: 'Erosi',                  action: "applyFilter('morphology',{type:'erosion',kernel:3})" },
+        { label: 'Dilatasi',               action: "applyFilter('morphology',{type:'dilation',kernel:3})" },
+        { label: 'Crop',                   action: "startCropMode()" },
+        { label: 'Rotate',                 action: "switchTab('tab-transform')" },
+        { label: 'Flip Horizontal',        action: "applyFilter('flip',{direction:'horizontal'})" },
+        { label: 'Flip Vertical',          action: "applyFilter('flip',{direction:'vertical'})" },
+        { label: 'Resize',                 action: "switchTab('tab-transform')" },
+        { label: 'Translation',            action: "switchTab('tab-transform')" },
+        { label: 'Interpolasi',            action: "switchTab('tab-transform')" },
+        { label: 'Red Channel',            action: "applyFilter('color_channel',{channel:'R'})" },
+        { label: 'Green Channel',          action: "applyFilter('color_channel',{channel:'G'})" },
+        { label: 'Blue Channel',           action: "applyFilter('color_channel',{channel:'B'})" },
+        { label: 'Segmentasi Threshold',   action: "switchTab('tab-segmentasi')" },
+        { label: 'Segmentasi Edge',        action: "applyFilter('segmentation_edge')" },
+        { label: 'Segmentasi Region',      action: "applyFilter('segmentation_region')" },
+        { label: 'Kompresi RLE',           action: "applyFilter('compress_rle')" },
+        { label: 'Kompresi JPEG',          action: "switchTab('tab-segmentasi')" },
+        { label: 'Tambah Teks',            action: "switchTab('tab-text')" },
+        { label: 'Histogram',              action: "switchTab('tab-histogram')" },
+    ];
+
+    const matched = allFeatures.filter(f => f.label.toLowerCase().includes(query));
+    const panel   = document.getElementById('search-results');
+    panel.innerHTML = '';
+
+    if (matched.length === 0) {
+        panel.innerHTML = `<p style="font-size:12px;color:var(--text-3);padding:8px 0;">Tidak ada hasil untuk "<b>${query}</b>"</p>`;
+    } else {
+        const grid = document.createElement('div');
+        grid.className = 'tools-grid';
+        matched.forEach(f => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-apply';
+            btn.style.marginTop = '0';
+            btn.textContent = f.label;
+            btn.addEventListener('click', () => {
+                clearSearch();
+                eval(f.action);
+            });
+            grid.appendChild(btn);
+        });
+        panel.appendChild(grid);
+    }
+    panel.style.display = 'block';
+});
+
+function clearSearch() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('search-results').style.display = 'none';
+    // Kembalikan ke tab yang terakhir aktif
+    document.querySelectorAll('.tab-content').forEach(t => {
+        if (t.id === 'search-results') return;
+        t.style.display = 'none';
+        t.classList.remove('active');
+    });
+    const activeTab = document.getElementById(activeTabId);
+    if (activeTab) {
+        activeTab.style.display = 'block';
+        activeTab.classList.add('active');
+    }
+    document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('active'));
+    const activeBtn = document.querySelector(`.rail-btn[data-tab="${activeTabId}"]`);
+    if (activeBtn) activeBtn.classList.add('active');
+}
+
+// =============================================
+// AJAX FILTER
 // =============================================
 function applyFilter(actionName, parameterObject = {}) {
     setStatus('processing');
@@ -623,6 +797,24 @@ function applyFilter(actionName, parameterObject = {}) {
             if (hp) hp.src = data.hist_proc;
         }
         updateUndoBtn(data.can_undo);
+        setStatus('done');
+    })
+    .catch(err => { setStatus('error', 'Koneksi error'); console.error(err); });
+}
+
+// Preview mode — baca dari original, tidak push history
+function applyFilterPreview(actionName, parameterObject = {}) {
+    setStatus('processing');
+    parameterObject._preview = true;
+    fetch('/api/process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: actionName, params: parameterObject })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) { setStatus('error', data.error); return; }
+        updateProcessed(data.processed_image);
         setStatus('done');
     })
     .catch(err => { setStatus('error', 'Koneksi error'); console.error(err); });
@@ -682,16 +874,18 @@ function doResetToOriginal() {
             if (hp) hp.src = data.hist_proc;
         }
         updateUndoBtn(false);
-        setStatus('done');
         document.getElementById('status-loading').textContent = 'Dikembalikan ke gambar awal ✓';
     })
     .catch(err => { setStatus('error', 'Koneksi error'); console.error(err); });
 }
 
 function updateDownloadLink() {
-    const fmt  = document.getElementById('select-format');
-    const link = document.getElementById('btn-download-link');
-    if (fmt && link) link.href = '/download?format=' + fmt.value;
+    const fmt       = document.getElementById('select-format');
+    const nameInput = document.getElementById('input-filename');
+    const link      = document.getElementById('btn-download-link');
+    if (!fmt || !link) return;
+    const filename = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : 'hasil-edit';
+    link.href = '/download?format=' + fmt.value + '&filename=' + encodeURIComponent(filename);
 }
 
 // =============================================
@@ -703,11 +897,12 @@ function updateSliderVal(slider) {
     if (slider.id === 'range-contrast')
         document.getElementById('val-contrast').textContent = (slider.value / 10).toFixed(1);
 }
+
 function handleBrightnessContrast(slider) {
     updateSliderVal(slider);
     const b = document.getElementById('range-brightness').value;
     const c = document.getElementById('range-contrast').value / 10;
-    applyFilter('brightness_contrast', { brightness: b, contrast: c });
+    applyFilterPreview('brightness_contrast', { brightness: b, contrast: c });
 }
 
 // =============================================
@@ -717,24 +912,19 @@ let cropMode  = false;
 let cropStart = null;
 let cropRect  = {};
 
-function getImgRect() {
-    const img = document.getElementById('display-processed');
-    if (!img) return null;
-    return img.getBoundingClientRect();
-}
-
 function startCropMode() {
-    if (!document.getElementById('crop-overlay')) return;
+    const overlay = document.getElementById('crop-overlay');
+    if (!overlay) { alert('Upload gambar dulu!'); return; }
     cancelTextMode();
     cropMode  = true;
     cropStart = null;
     cropRect  = {};
-    const overlay = document.getElementById('crop-overlay');
     const sel     = document.getElementById('crop-selection');
     const toolbar = document.getElementById('crop-toolbar');
     overlay.classList.add('active');
     sel.style.display = 'none';
     toolbar.classList.remove('visible');
+    setStatus('done');
     document.getElementById('status-loading').textContent = 'Mode Crop — Drag pada gambar';
     overlay.onmousedown = onCropMouseDown;
     overlay.onmousemove = onCropMouseMove;
@@ -742,30 +932,31 @@ function startCropMode() {
 }
 
 function onCropMouseDown(e) {
-    const imgRect = getImgRect();
-    if (!imgRect) return;
-    const ox = e.clientX - imgRect.left;
-    const oy = e.clientY - imgRect.top;
-    if (ox < 0 || oy < 0 || ox > imgRect.width || oy > imgRect.height) return;
-    cropStart = { x: ox, y: oy };
+    e.preventDefault();
+    const overlay = document.getElementById('crop-overlay');
+    const rect    = overlay.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    cropStart = { x, y };
     const sel = document.getElementById('crop-selection');
     sel.style.display = 'block';
-    sel.style.left    = ox + 'px';
-    sel.style.top     = oy + 'px';
+    sel.style.left    = x + 'px';
+    sel.style.top     = y + 'px';
     sel.style.width   = '0px';
     sel.style.height  = '0px';
 }
 
 function onCropMouseMove(e) {
     if (!cropStart) return;
-    const imgRect = getImgRect();
-    if (!imgRect) return;
-    const cx  = Math.max(0, Math.min(e.clientX - imgRect.left, imgRect.width));
-    const cy  = Math.max(0, Math.min(e.clientY - imgRect.top,  imgRect.height));
-    const x   = Math.min(cropStart.x, cx);
-    const y   = Math.min(cropStart.y, cy);
-    const w   = Math.abs(cx - cropStart.x);
-    const h   = Math.abs(cy - cropStart.y);
+    e.preventDefault();
+    const overlay = document.getElementById('crop-overlay');
+    const rect    = overlay.getBoundingClientRect();
+    const cx = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    const cy = Math.max(0, Math.min(e.clientY - rect.top,  rect.height));
+    const x  = Math.min(cropStart.x, cx);
+    const y  = Math.min(cropStart.y, cy);
+    const w  = Math.abs(cx - cropStart.x);
+    const h  = Math.abs(cy - cropStart.y);
     const sel = document.getElementById('crop-selection');
     sel.style.left   = x + 'px';
     sel.style.top    = y + 'px';
@@ -774,7 +965,7 @@ function onCropMouseMove(e) {
     cropRect = { x, y, w, h };
 }
 
-function onCropMouseUp() {
+function onCropMouseUp(e) {
     if (!cropStart) return;
     cropStart = null;
     if (cropRect.w > 5 && cropRect.h > 5)
@@ -785,12 +976,18 @@ function confirmCrop() {
     if (!cropRect.w || !cropRect.h) return;
     const img     = document.getElementById('display-processed');
     const imgRect = img.getBoundingClientRect();
+    const overlay = document.getElementById('crop-overlay');
+    const ovRect  = overlay.getBoundingClientRect();
+    const imgOffX = imgRect.left - ovRect.left;
+    const imgOffY = imgRect.top  - ovRect.top;
+    const relX    = cropRect.x - imgOffX;
+    const relY    = cropRect.y - imgOffY;
     const scaleX  = img.naturalWidth  / imgRect.width;
     const scaleY  = img.naturalHeight / imgRect.height;
-    const realX   = Math.round(cropRect.x * scaleX);
-    const realY   = Math.round(cropRect.y * scaleY);
-    const realW   = Math.round(cropRect.w * scaleX);
-    const realH   = Math.round(cropRect.h * scaleY);
+    const realX   = Math.max(0, Math.round(relX * scaleX));
+    const realY   = Math.max(0, Math.round(relY * scaleY));
+    const realW   = Math.min(Math.round(cropRect.w * scaleX), img.naturalWidth  - realX);
+    const realH   = Math.min(Math.round(cropRect.h * scaleY), img.naturalHeight - realY);
     cancelCrop();
     applyFilter('crop_manual', { x: realX, y: realY, w: realW, h: realH });
 }
@@ -802,7 +999,12 @@ function cancelCrop() {
     const overlay = document.getElementById('crop-overlay');
     const sel     = document.getElementById('crop-selection');
     const toolbar = document.getElementById('crop-toolbar');
-    if (overlay) { overlay.classList.remove('active'); overlay.onmousedown = null; overlay.onmousemove = null; overlay.onmouseup = null; }
+    if (overlay) {
+        overlay.classList.remove('active');
+        overlay.onmousedown = null;
+        overlay.onmousemove = null;
+        overlay.onmouseup   = null;
+    }
     if (sel)     sel.style.display = 'none';
     if (toolbar) toolbar.classList.remove('visible');
     const st = document.getElementById('status-loading');
@@ -850,9 +1052,9 @@ function updateTextPreview() {
     const text  = document.getElementById('input-text')      ? document.getElementById('input-text').value || 'Teks'  : 'Teks';
     const size  = document.getElementById('range-fontsize')  ? document.getElementById('range-fontsize').value        : 32;
     const color = document.getElementById('input-textcolor') ? document.getElementById('input-textcolor').value       : '#ffffff';
-    preview.textContent       = text;
-    preview.style.fontSize    = size + 'px';
-    preview.style.color       = color;
+    preview.textContent    = text;
+    preview.style.fontSize = size + 'px';
+    preview.style.color    = color;
 }
 
 function onTextMouseMove(e) {
