@@ -26,7 +26,6 @@
         .input-field:focus { border-color: var(--accent); }
         .input-label { font-size: 10px; color: var(--text-2); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px; }
         .input-group { margin-bottom: 10px; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .info-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 12px; }
         .info-box p { font-size: 11px; color: var(--text-3); line-height: 1.5; }
         .info-box i { color: var(--accent); margin-right: 4px; }
@@ -87,13 +86,12 @@
 
         <div id="search-results" class="panel-section"></div>
 
-        <!-- ═══════════════════════════════════
-             TAB DASAR (Beranda / Shortcut)
-        ════════════════════════════════════ -->
+        <!-- ═══════════════════════════
+             TAB DASAR
+        ════════════════════════════ -->
         <div id="tab-dasar" class="tab-content active panel-section">
             <p class="section-label">Rekomendasi</p>
             <div class="tools-grid">
-                <!-- Grayscale → tab Color -->
                 <div class="tool-card" data-action="switchTab('tab-color')">
                     <div class="card-thumb grayscale-thumb">
                         <div class="thumb-split"><div class="split-color"></div><div class="split-gray"></div></div>
@@ -101,7 +99,6 @@
                     </div>
                     <span class="card-label">Grayscale</span>
                 </div>
-                <!-- Smoothing → tab Filter -->
                 <div class="tool-card" data-action="switchTab('tab-filter')">
                     <div class="card-thumb blur-thumb">
                         <div class="thumb-blur-demo"><div class="blur-circle c1"></div><div class="blur-circle c2"></div></div>
@@ -109,7 +106,6 @@
                     </div>
                     <span class="card-label">Smoothing</span>
                 </div>
-                <!-- Sharpening → tab Filter -->
                 <div class="tool-card" data-action="switchTab('tab-filter')">
                     <div class="card-thumb sharp-thumb">
                         <div class="sharp-lines"><div class="sline"></div><div class="sline"></div></div>
@@ -117,7 +113,6 @@
                     </div>
                     <span class="card-label">Sharpening</span>
                 </div>
-                <!-- Edge Canny → tab Edge & Binary -->
                 <div class="tool-card" data-action="switchTab('tab-edge')">
                     <div class="card-thumb edge-thumb">
                         <div class="edge-rect" style="border-color:var(--accent)"></div>
@@ -166,15 +161,16 @@
             </div>
         </div>
 
-        <!-- ═══════════════════════════════════
+        <!-- ═══════════════════════════
              TAB ADJUST
-        ════════════════════════════════════ -->
+        ════════════════════════════ -->
         <div id="tab-adjust" class="tab-content panel-section">
             <p class="section-label">Brightness & Contrast</p>
             <div class="control-group">
                 <label>Brightness</label>
                 <div class="slider-row">
                     <input type="range" id="range-brightness" min="-100" max="100" value="0"
+                        onmousedown="beginAdjust()" ontouchstart="beginAdjust()"
                         oninput="handleBrightnessContrast(this)">
                     <span id="val-brightness">0</span>
                 </div>
@@ -183,28 +179,41 @@
                 <label>Contrast</label>
                 <div class="slider-row">
                     <input type="range" id="range-contrast" min="5" max="30" value="10"
+                        onmousedown="beginAdjust()" ontouchstart="beginAdjust()"
                         oninput="handleBrightnessContrast(this)">
                     <span id="val-contrast">1.0</span>
                 </div>
             </div>
+            <button class="btn-apply" onclick="commitAdjust('brightness_contrast')">
+                <i class="fa-solid fa-check"></i> Terapkan Brightness & Contrast
+            </button>
 
             <p class="section-label" style="margin-top:20px;">Warna</p>
             <div class="control-group">
                 <label>Saturation</label>
                 <div class="slider-row">
                     <input type="range" id="range-saturation" min="0" max="30" value="10" step="1"
+                        onmousedown="beginAdjust()" ontouchstart="beginAdjust()"
                         oninput="document.getElementById('val-saturation').textContent=(this.value/10).toFixed(1); applyFilterPreview('saturation',{value:this.value/10})">
                     <span id="val-saturation">1.0</span>
                 </div>
             </div>
-            <div class="control-group">
+            <button class="btn-apply" onclick="commitAdjust('saturation')">
+                <i class="fa-solid fa-check"></i> Terapkan Saturation
+            </button>
+
+            <div class="control-group" style="margin-top:14px;">
                 <label>Hue Rotate</label>
                 <div class="slider-row">
                     <input type="range" id="range-hue" min="0" max="180" value="0"
+                        onmousedown="beginAdjust()" ontouchstart="beginAdjust()"
                         oninput="document.getElementById('val-hue').textContent=this.value+'°'; applyFilterPreview('hue_rotate',{angle:this.value})">
                     <span id="val-hue">0°</span>
                 </div>
             </div>
+            <button class="btn-apply" onclick="commitAdjust('hue_rotate')">
+                <i class="fa-solid fa-check"></i> Terapkan Hue Rotate
+            </button>
 
             <p class="section-label" style="margin-top:20px;">Enhancement</p>
             <button class="btn-apply" onclick="applyFilter('histogram_equalization')">
@@ -212,9 +221,9 @@
             </button>
         </div>
 
-        <!-- ═══════════════════════════════════
+        <!-- ═══════════════════════════
              TAB FILTER & NOISE
-        ════════════════════════════════════ -->
+        ════════════════════════════ -->
         <div id="tab-filter" class="tab-content panel-section">
             <p class="section-label">Smoothing</p>
             <div class="tools-grid">
@@ -255,9 +264,9 @@
             </div>
         </div>
 
-        <!-- ═══════════════════════════════════
+        <!-- ═══════════════════════════
              TAB EDGE & BINARY
-        ════════════════════════════════════ -->
+        ════════════════════════════ -->
         <div id="tab-edge" class="tab-content panel-section">
             <p class="section-label">Thresholding</p>
             <div class="control-group">
@@ -299,9 +308,9 @@
             </div>
         </div>
 
-        <!-- ═══════════════════════════════════
+        <!-- ═══════════════════════════
              TAB TRANSFORM
-        ════════════════════════════════════ -->
+        ════════════════════════════ -->
         <div id="tab-transform" class="tab-content panel-section">
             <p class="section-label">Crop</p>
             <div class="info-box">
@@ -393,16 +402,16 @@
             })">Terapkan Interpolasi</button>
         </div>
 
-        <!-- ═══════════════════════════════════
-             TAB COLOR (Warna)
-        ════════════════════════════════════ -->
+        <!-- ═══════════════════════════
+             TAB COLOR
+        ════════════════════════════ -->
         <div id="tab-color" class="tab-content panel-section">
             <p class="section-label">RGB → Grayscale</p>
             <div class="info-box">
                 <p><i class="fa-solid fa-circle-info"></i> Konversi gambar berwarna ke skala abu-abu menggunakan transformasi ruang warna.</p>
             </div>
             <div class="tools-grid">
-                <div class="tool-card" data-action="applyFilter('grayscale')" style="grid-column: span 2;">
+                <div class="tool-card" data-action="applyFilter('grayscale')" style="grid-column:span 2;">
                     <div class="card-thumb grayscale-thumb" style="height:80px;">
                         <div class="thumb-split"><div class="split-color"></div><div class="split-gray"></div></div>
                         <div class="card-badge">Warna</div>
@@ -418,22 +427,22 @@
             <div style="display:flex;flex-direction:column;gap:8px;">
                 <button class="btn-apply" onclick="applyFilter('color_channel',{channel:'R'})"
                     style="background:#ff5252;color:white;margin-top:0;">
-                    <i class="fa-solid fa-circle" style="color:white;"></i> Red Channel
+                    <i class="fa-solid fa-circle"></i> Red Channel
                 </button>
                 <button class="btn-apply" onclick="applyFilter('color_channel',{channel:'G'})"
                     style="background:#4ade80;color:#0e0e10;margin-top:0;">
-                    <i class="fa-solid fa-circle" style="color:#0e0e10;"></i> Green Channel
+                    <i class="fa-solid fa-circle"></i> Green Channel
                 </button>
                 <button class="btn-apply" onclick="applyFilter('color_channel',{channel:'B'})"
                     style="background:#38bdf8;color:white;margin-top:0;">
-                    <i class="fa-solid fa-circle" style="color:white;"></i> Blue Channel
+                    <i class="fa-solid fa-circle"></i> Blue Channel
                 </button>
             </div>
         </div>
 
-        <!-- ═══════════════════════════════════
+        <!-- ═══════════════════════════
              TAB SEGMENTASI
-        ════════════════════════════════════ -->
+        ════════════════════════════ -->
         <div id="tab-segmentasi" class="tab-content panel-section">
             <p class="section-label">Image Segmentation</p>
             <div class="info-box">
@@ -477,7 +486,7 @@
                 <i class="fa-solid fa-file-zipper"></i> Simulasi RLE
             </button>
             <div class="control-group" style="margin-top:12px;">
-                <label>Kualitas JPEG (5% – 100%)</label>
+                <label>Kualitas JPEG (5%–100%)</label>
                 <div class="slider-row">
                     <input type="range" id="range-compress" min="5" max="100" value="80"
                         oninput="document.getElementById('val-compress').textContent=this.value+'%'">
@@ -489,9 +498,9 @@
             })"><i class="fa-solid fa-file-image"></i> Simulasi Kompresi JPEG</button>
         </div>
 
-        <!-- ═══════════════════════════════════
+        <!-- ═══════════════════════════
              TAB HISTOGRAM
-        ════════════════════════════════════ -->
+        ════════════════════════════ -->
         <div id="tab-histogram" class="tab-content panel-section">
             <p class="section-label">Histogram Before</p>
             <div class="hist-container">
@@ -511,9 +520,9 @@
             </div>
         </div>
 
-        <!-- ═══════════════════════════════════
+        <!-- ═══════════════════════════
              TAB TEXT
-        ════════════════════════════════════ -->
+        ════════════════════════════ -->
         <div id="tab-text" class="tab-content panel-section">
             <p class="section-label">Tambah Teks ke Gambar</p>
             <div class="info-box">
@@ -728,43 +737,43 @@ document.getElementById('search-input').addEventListener('input', function() {
     });
 
     const allFeatures = [
-        { label: 'Grayscale',              action: "applyFilter('grayscale')" },
-        { label: 'Smoothing / Gaussian Blur', action: "applyFilter('blur_filter',{type:'gaussian',kernel:9})" },
-        { label: 'Median Filter',          action: "applyFilter('blur_filter',{type:'median',kernel:5})" },
-        { label: 'Sharpening',             action: "applyFilter('sharpening')" },
-        { label: 'Edge Canny',             action: "applyFilter('edge_detection',{method:'canny'})" },
-        { label: 'Sobel Edge',             action: "applyFilter('edge_detection',{method:'sobel'})" },
-        { label: 'Prewitt Edge',           action: "applyFilter('edge_detection',{method:'prewitt'})" },
-        { label: 'Robert Edge',            action: "applyFilter('edge_robert')" },
-        { label: 'Laplacian',              action: "applyFilter('edge_detection',{method:'laplacian'})" },
-        { label: 'Laplacian of Gaussian',  action: "applyFilter('edge_log')" },
-        { label: 'Brightness',             action: "switchTab('tab-adjust')" },
-        { label: 'Contrast',               action: "switchTab('tab-adjust')" },
-        { label: 'Saturation',             action: "switchTab('tab-adjust')" },
-        { label: 'Hue Rotate',             action: "switchTab('tab-adjust')" },
-        { label: 'Histogram Equalization', action: "applyFilter('histogram_equalization')" },
-        { label: 'Salt & Pepper Noise',    action: "applyFilter('noise_saltpepper',{amount:0.02})" },
-        { label: 'Noise Removal',          action: "applyFilter('noise_removal_sp',{kernel:3})" },
-        { label: 'Threshold',              action: "switchTab('tab-edge')" },
-        { label: 'Erosi',                  action: "applyFilter('morphology',{type:'erosion',kernel:3})" },
-        { label: 'Dilatasi',               action: "applyFilter('morphology',{type:'dilation',kernel:3})" },
-        { label: 'Crop',                   action: "switchTab('tab-transform')" },
-        { label: 'Rotate / Rotasi',        action: "switchTab('tab-transform')" },
-        { label: 'Flip Horizontal',        action: "applyFilter('flip',{direction:'horizontal'})" },
-        { label: 'Flip Vertical',          action: "applyFilter('flip',{direction:'vertical'})" },
-        { label: 'Resize',                 action: "switchTab('tab-transform')" },
-        { label: 'Translation / Geser',    action: "switchTab('tab-transform')" },
-        { label: 'Interpolasi',            action: "switchTab('tab-transform')" },
-        { label: 'Red Channel',            action: "applyFilter('color_channel',{channel:'R'})" },
-        { label: 'Green Channel',          action: "applyFilter('color_channel',{channel:'G'})" },
-        { label: 'Blue Channel',           action: "applyFilter('color_channel',{channel:'B'})" },
-        { label: 'Segmentasi Threshold',   action: "switchTab('tab-segmentasi')" },
-        { label: 'Segmentasi Edge',        action: "applyFilter('segmentation_edge')" },
-        { label: 'Segmentasi Region Watershed', action: "applyFilter('segmentation_region')" },
-        { label: 'Kompresi RLE',           action: "applyFilter('compress_rle')" },
-        { label: 'Kompresi JPEG',          action: "switchTab('tab-segmentasi')" },
-        { label: 'Tambah Teks',            action: "switchTab('tab-text')" },
-        { label: 'Histogram',              action: "switchTab('tab-histogram')" },
+        { label: 'Grayscale',                   action: "applyFilter('grayscale')" },
+        { label: 'Gaussian Blur / Smoothing',    action: "applyFilter('blur_filter',{type:'gaussian',kernel:9})" },
+        { label: 'Median Filter',                action: "applyFilter('blur_filter',{type:'median',kernel:5})" },
+        { label: 'Sharpening',                   action: "applyFilter('sharpening')" },
+        { label: 'Canny Edge',                   action: "applyFilter('edge_detection',{method:'canny'})" },
+        { label: 'Sobel Edge',                   action: "applyFilter('edge_detection',{method:'sobel'})" },
+        { label: 'Prewitt Edge',                 action: "applyFilter('edge_detection',{method:'prewitt'})" },
+        { label: 'Robert Edge',                  action: "applyFilter('edge_robert')" },
+        { label: 'Laplacian',                    action: "applyFilter('edge_detection',{method:'laplacian'})" },
+        { label: 'Laplacian of Gaussian LoG',    action: "applyFilter('edge_log')" },
+        { label: 'Brightness',                   action: "switchTab('tab-adjust')" },
+        { label: 'Contrast',                     action: "switchTab('tab-adjust')" },
+        { label: 'Saturation',                   action: "switchTab('tab-adjust')" },
+        { label: 'Hue Rotate',                   action: "switchTab('tab-adjust')" },
+        { label: 'Histogram Equalization',        action: "applyFilter('histogram_equalization')" },
+        { label: 'Salt Pepper Noise',            action: "applyFilter('noise_saltpepper',{amount:0.02})" },
+        { label: 'Noise Removal',                action: "applyFilter('noise_removal_sp',{kernel:3})" },
+        { label: 'Threshold Thresholding',       action: "switchTab('tab-edge')" },
+        { label: 'Erosi Erosion',                action: "applyFilter('morphology',{type:'erosion',kernel:3})" },
+        { label: 'Dilatasi Dilation',            action: "applyFilter('morphology',{type:'dilation',kernel:3})" },
+        { label: 'Crop',                         action: "switchTab('tab-transform')" },
+        { label: 'Rotate Rotasi',                action: "switchTab('tab-transform')" },
+        { label: 'Flip Horizontal',              action: "applyFilter('flip',{direction:'horizontal'})" },
+        { label: 'Flip Vertical',                action: "applyFilter('flip',{direction:'vertical'})" },
+        { label: 'Resize Skala',                 action: "switchTab('tab-transform')" },
+        { label: 'Translation Geser',            action: "switchTab('tab-transform')" },
+        { label: 'Interpolasi',                  action: "switchTab('tab-transform')" },
+        { label: 'Red Channel',                  action: "applyFilter('color_channel',{channel:'R'})" },
+        { label: 'Green Channel',                action: "applyFilter('color_channel',{channel:'G'})" },
+        { label: 'Blue Channel',                 action: "applyFilter('color_channel',{channel:'B'})" },
+        { label: 'Segmentasi Threshold',         action: "switchTab('tab-segmentasi')" },
+        { label: 'Segmentasi Edge Kontur',       action: "applyFilter('segmentation_edge')" },
+        { label: 'Segmentasi Region Watershed',  action: "applyFilter('segmentation_region')" },
+        { label: 'Kompresi RLE',                 action: "applyFilter('compress_rle')" },
+        { label: 'Kompresi JPEG',                action: "switchTab('tab-segmentasi')" },
+        { label: 'Tambah Teks',                  action: "switchTab('tab-text')" },
+        { label: 'Histogram',                    action: "switchTab('tab-histogram')" },
     ];
 
     const matched = allFeatures.filter(f => f.label.toLowerCase().includes(query));
@@ -774,18 +783,18 @@ document.getElementById('search-input').addEventListener('input', function() {
     if (matched.length === 0) {
         panel.innerHTML += `<p style="font-size:12px;color:var(--text-3);padding:4px 0;">Tidak ada hasil untuk "<b>${query}</b>"</p>`;
     } else {
-        const grid = document.createElement('div');
-        grid.className = 'tools-grid';
-        grid.style.gridTemplateColumns = '1fr';
+        const list = document.createElement('div');
+        list.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
         matched.forEach(f => {
             const btn = document.createElement('button');
-            btn.className = 'btn-apply';
+            btn.className    = 'btn-apply';
             btn.style.marginTop = '0';
-            btn.textContent = f.label;
+            btn.textContent  = f.label.split(' ')[0]; // tampilkan nama pertama saja
+            btn.title        = f.label;
             btn.addEventListener('click', () => { clearSearch(); eval(f.action); });
-            grid.appendChild(btn);
+            list.appendChild(btn);
         });
-        panel.appendChild(grid);
+        panel.appendChild(list);
     }
     panel.style.display = 'block';
 });
@@ -858,6 +867,39 @@ function setStatus(state, msg) {
     if (state === 'processing') { el.classList.add('status-processing'); el.textContent = 'Memproses...'; }
     else if (state === 'done')  { el.classList.add('status-done');       el.textContent = 'Selesai ✓'; }
     else if (state === 'error') { el.classList.add('status-error');      el.textContent = msg || 'Error!'; }
+}
+
+// =============================================
+// BEGIN ADJUST — simpan snapshot sebelum slider
+// =============================================
+let adjustStarted = false;
+
+function beginAdjust() {
+    if (adjustStarted) return; // cegah dipanggil berkali-kali
+    adjustStarted = true;
+    fetch('/api/begin_adjust', { method: 'POST' })
+    .catch(err => console.error('begin_adjust error:', err));
+}
+
+// Reset flag saat mouse dilepas dari slider mana pun
+document.addEventListener('mouseup',  () => { adjustStarted = false; });
+document.addEventListener('touchend', () => { adjustStarted = false; });
+
+// =============================================
+// COMMIT ADJUST — terapkan slider ke history
+// =============================================
+function commitAdjust(type) {
+    if (type === 'brightness_contrast') {
+        const b = document.getElementById('range-brightness').value;
+        const c = document.getElementById('range-contrast').value / 10;
+        applyFilter('brightness_contrast', { brightness: b, contrast: c });
+    } else if (type === 'saturation') {
+        const v = document.getElementById('range-saturation').value / 10;
+        applyFilter('saturation', { value: v });
+    } else if (type === 'hue_rotate') {
+        const a = document.getElementById('range-hue').value;
+        applyFilter('hue_rotate', { angle: a });
+    }
 }
 
 // =============================================
@@ -960,13 +1002,11 @@ function onCropMouseDown(e) {
     e.preventDefault();
     const overlay = document.getElementById('crop-overlay');
     const rect    = overlay.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    cropStart = { x, y };
+    cropStart = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     const sel = document.getElementById('crop-selection');
     sel.style.display = 'block';
-    sel.style.left    = x + 'px';
-    sel.style.top     = y + 'px';
+    sel.style.left    = cropStart.x + 'px';
+    sel.style.top     = cropStart.y + 'px';
     sel.style.width   = '0px';
     sel.style.height  = '0px';
 }
