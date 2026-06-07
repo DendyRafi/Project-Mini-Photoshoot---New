@@ -1,5 +1,5 @@
 """
-PhotoLab - Image Processing Application (Final Version)
+PhotoLab - Image Processing Application (Final Version with Stateful Channels)
 Fitur: Grayscale, threshold, morphology, channel split, edge detection, segmentation, dan banyak lagi.
 Semua output dikonversi ke BGR untuk consistency, crop dipreservasi dengan benar.
 """
@@ -271,13 +271,16 @@ def process_image_api():
         else:
             image_state['adjustment_base'] = None
             
-            # FIX UNTUK BERPINDAH CHANNEL WARNA SECARA BERGANTIAN
-            if action == 'color_channel' and image_state['before_channel_view'] is not None:
+            # State Management perbaikan Undo berurutan untuk fitur Color Channel Split
+            if action == 'color_channel':
+                if image_state['before_channel_view'] is None:
+                    image_state['before_channel_view'] = image_state['current'].copy()
+                
+                push_history(image_state['current'])
                 img = image_state['before_channel_view'].copy()
-            # Jika sebelumnya dalam channel view dan sekarang operasi baru (bukan color_channel):
+                
             elif action != 'color_channel' and image_state['before_channel_view'] is not None:
                 if is_single_channel_view(image_state['current']):
-                    # Recover ke state sebelum channel selection
                     img = image_state['before_channel_view'].copy()
                     push_history(img)
                     image_state['before_channel_view'] = None  # Clear channel view mode
@@ -327,11 +330,9 @@ def process_image_api():
         elif action == 'color_channel':
             channel = params.get('channel', 'R')
             
-            # Simpan state sebelum channel view jika belum ada
             if image_state['before_channel_view'] is None:
                 image_state['before_channel_view'] = image_state['current'].copy()
             
-            # Gunakan base image yang asli (img) untuk ekstraksi channel
             src = img.copy()
             src = ensure_bgr(src)
             b, g, r = cv2.split(src)
@@ -345,7 +346,7 @@ def process_image_api():
             else:
                 out_img = src.copy()
             
-            # Set current tapi jangan push to history (channel view adalah stateless)
+            # Selaraskan out_img ke state global agar konsisten dicatat history di pipeline utama
             if not is_preview:
                 image_state['current'] = out_img.copy()
 
@@ -456,9 +457,7 @@ def process_image_api():
             k_size = int(params.get('kernel', 3))
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             
-            # FIX UNTUK CANNY TO MORPHOLOGY:
-            # Cek jika gambar sudah binary (seperti hasil Canny), tidak perlu ditreshold statis lagi
-            # Cukup cek keunikan value pikselnya (apakah hanya berisi 0 dan 255)
+            # Proteksi agar dari Canny Edge Detection ke Erosi/Dilasi tidak langsung hitam blanket.
             unique_vals = np.unique(gray)
             if len(unique_vals) <= 2 and 255 in unique_vals:
                 thresh = gray
