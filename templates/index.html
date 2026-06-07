@@ -591,7 +591,7 @@
                     <span style="font-size:11px;font-weight:600;">Undo</span>
                 </button>
                 <button class="btn-icon-only" title="Reset ke gambar awal" onclick="doResetToOriginal()"
-                    style="display:flex;align-items:center;gap:5px;padding:0 10px;width:auto;">
+                    style="display:flex;align-items:center;gap:5px;padding:0 10px;width:auto;color:var(--accent);">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     <span style="font-size:11px;font-weight:600;">Reset Edit</span>
                 </button>
@@ -692,6 +692,7 @@
             <span>Digital Image Processing Application</span>
         </footer>
     </main>
+    <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobilePanel()"></div>
 </div>
 
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>

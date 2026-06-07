@@ -623,6 +623,9 @@ button { cursor: pointer; font-family: var(--font-body); border: none; backgroun
     flex-direction: column;
     padding: 20px;
     gap: 14px;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .preview-label-row {
@@ -630,6 +633,8 @@ button { cursor: pointer; font-family: var(--font-body); border: none; backgroun
     align-items: center;
     justify-content: space-between;
     padding: 0 4px;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .preview-badge {
@@ -656,10 +661,14 @@ button { cursor: pointer; font-family: var(--font-body); border: none; backgroun
     display: flex;
     gap: 16px;
     flex: 1;
+    min-height: 0;
+    align-items: stretch;
 }
 
 .panel-box {
     flex: 1;
+    min-width: 0;
+    min-height: 0;
     background: var(--bg-surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
@@ -679,20 +688,29 @@ button { cursor: pointer; font-family: var(--font-body); border: none; backgroun
     font-size: 14px;
 }
 
-.image-frame {
+.image-frame,
+.canvas-wrapper {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    overflow: hidden;
     padding: 16px;
-    width: 100%;
-    height: 100%;
 }
-.image-frame img {
-    max-width: 100%;
-    max-height: 100%;
+.image-frame img,
+#display-processed {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
     object-fit: contain;
+    display: block;
     border-radius: var(--radius-sm);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
 }
 
 /* STATUS BAR */
@@ -761,4 +779,129 @@ button { cursor: pointer; font-family: var(--font-body); border: none; backgroun
     50% { clip-path: inset(50% 0 25% 0); }
     75% { clip-path: inset(25% 0 40% 0); }
     100% { clip-path: inset(85% 0 5% 0); }
+}
+
+/* ── MOBILE RESPONSIVE ── */
+@media (max-width: 768px) {
+
+    /* Sembunyikan tools panel secara default di mobile */
+    .tools-panel {
+        position: fixed;
+        left: -100%;
+        top: 0;
+        height: 100vh;
+        width: 80vw;
+        max-width: 300px;
+        z-index: 200;
+        transition: left 0.3s ease;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+    }
+
+    .tools-panel.mobile-open {
+        left: var(--rail-w);
+    }
+
+    /* Overlay gelap saat panel terbuka */
+    .mobile-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 199;
+    }
+
+    .mobile-overlay.active {
+        display: block;
+    }
+
+    /* Icon rail lebih kecil di mobile */
+    .icon-rail {
+        width: 48px;
+    }
+
+    :root { --rail-w: 48px; }
+
+    .rail-btn { width: 36px; height: 36px; font-size: 14px; }
+    .rail-logo { width: 30px; height: 30px; font-size: 13px; }
+
+    /* Workspace penuh di mobile */
+    .workspace {
+        width: calc(100vw - 48px);
+    }
+
+    /* Top bar mobile */
+    .top-bar {
+        padding: 0 10px;
+        gap: 4px;
+    }
+
+    .brand-name { font-size: 15px; }
+    .file-info  { display: none; }
+
+    /* Tombol Undo & Reset lebih compact */
+    #undo-btn span,
+    .btn-icon-only span { display: none; }
+
+    #undo-btn,
+    .btn-icon-only {
+        padding: 0 8px !important;
+        width: 32px !important;
+    }
+
+    /* Input filename & format lebih kecil */
+    #input-filename { width: 70px !important; }
+    #select-format  { width: 55px !important; }
+
+    .btn-download {
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+
+    /* Preview panels di mobile: stack vertikal */
+    .preview-state {
+        padding: 12px;
+        overflow: hidden;
+    }
+
+    .preview-label-row {
+        gap: 6px;
+    }
+
+    .preview-panels {
+        flex-direction: column;
+        gap: 10px;
+        min-height: 0;
+    }
+
+    .panel-divider { display: none; }
+
+    .panel-box {
+        min-height: 32vh;
+    }
+
+    .image-frame,
+    .canvas-wrapper {
+        padding: 10px;
+    }
+
+    .image-frame img,
+    #display-processed {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        max-height: none !important;
+        object-fit: contain;
+    }
+
+    /* Canvas zone */
+    .canvas-zone {
+        overflow: hidden;
+    }
+
+    /* Upload card lebih kecil */
+    .upload-card {
+        padding: 28px 20px;
+    }
+
+    .floating-pills { display: none; }
 }
