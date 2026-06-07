@@ -164,62 +164,74 @@
         <!-- ═══════════════════════════
              TAB ADJUST
         ════════════════════════════ -->
-        <div id="tab-adjust" class="tab-content panel-section">
-            <p class="section-label">Brightness & Contrast</p>
-            <div class="control-group">
-                <label>Brightness</label>
-                <div class="slider-row">
-                    <input type="range" id="range-brightness" min="-100" max="100" value="0"
-                        onmousedown="beginAdjust()" ontouchstart="beginAdjust()"
-                        oninput="handleBrightnessContrast(this)">
-                    <span id="val-brightness">0</span>
-                </div>
-            </div>
-            <div class="control-group">
-                <label>Contrast</label>
-                <div class="slider-row">
-                    <input type="range" id="range-contrast" min="5" max="30" value="10"
-                        onmousedown="beginAdjust()" ontouchstart="beginAdjust()"
-                        oninput="handleBrightnessContrast(this)">
-                    <span id="val-contrast">1.0</span>
-                </div>
-            </div>
-            <button class="btn-apply" onclick="commitAdjust('brightness_contrast')">
-                <i class="fa-solid fa-check"></i> Terapkan Brightness & Contrast
-            </button>
-
-            <p class="section-label" style="margin-top:20px;">Warna</p>
-            <div class="control-group">
-                <label>Saturation</label>
-                <div class="slider-row">
-                    <input type="range" id="range-saturation" min="0" max="30" value="10" step="1"
-                        onmousedown="beginAdjust()" ontouchstart="beginAdjust()"
-                        oninput="document.getElementById('val-saturation').textContent=(this.value/10).toFixed(1); applyFilterPreview('saturation',{value:this.value/10})">
-                    <span id="val-saturation">1.0</span>
-                </div>
-            </div>
-            <button class="btn-apply" onclick="commitAdjust('saturation')">
-                <i class="fa-solid fa-check"></i> Terapkan Saturation
-            </button>
-
-            <div class="control-group" style="margin-top:14px;">
-                <label>Hue Rotate</label>
-                <div class="slider-row">
-                    <input type="range" id="range-hue" min="0" max="180" value="0"
-                        onmousedown="beginAdjust()" ontouchstart="beginAdjust()"
-                        oninput="document.getElementById('val-hue').textContent=this.value+'°'; applyFilterPreview('hue_rotate',{angle:this.value})">
-                    <span id="val-hue">0°</span>
-                </div>
-            </div>
-            <button class="btn-apply" onclick="commitAdjust('hue_rotate')">
-                <i class="fa-solid fa-check"></i> Terapkan Hue Rotate
-            </button>
-
-            <p class="section-label" style="margin-top:20px;">Enhancement</p>
-            <button class="btn-apply" onclick="applyFilter('histogram_equalization')">
-                <i class="fa-solid fa-chart-area"></i> Histogram Equalization
-            </button>
+<div id="tab-adjust" class="tab-content panel-section">
+    <p class="section-label">Brightness & Contrast</p>
+    <div class="control-group">
+        <label>Brightness</label>
+        <div class="slider-row">
+            <input type="range" id="range-brightness" min="-100" max="100" value="0"
+                onmousedown="beginAdjust()"
+                ontouchstart="beginAdjust()"
+                oninput="document.getElementById('val-brightness').textContent=this.value"
+                onmouseup="commitSlider('brightness_contrast')"
+                ontouchend="commitSlider('brightness_contrast')">
+            <span id="val-brightness">0</span>
         </div>
+    </div>
+    <div class="control-group">
+        <label>Contrast</label>
+        <div class="slider-row">
+            <input type="range" id="range-contrast" min="0" max="30" value="10"
+                onmousedown="beginAdjust()"
+                ontouchstart="beginAdjust()"
+                oninput="document.getElementById('val-contrast').textContent=(this.value/10).toFixed(1)"
+                onmouseup="commitSlider('brightness_contrast')"
+                ontouchend="commitSlider('brightness_contrast')">
+            <span id="val-contrast">1.0</span>
+        </div>
+    </div>
+    <button class="btn-apply" onclick="commitAdjust('brightness_contrast')">
+        <i class="fa-solid fa-check"></i> Terapkan Brightness & Contrast
+    </button>
+
+    <p class="section-label" style="margin-top:20px;">Warna</p>
+    <div class="control-group">
+        <label>Saturation</label>
+        <div class="slider-row">
+            <input type="range" id="range-saturation" min="0" max="30" value="10" step="1"
+                onmousedown="beginAdjust()"
+                ontouchstart="beginAdjust()"
+                oninput="document.getElementById('val-saturation').textContent=(this.value/10).toFixed(1)"
+                onmouseup="commitSlider('saturation')"
+                ontouchend="commitSlider('saturation')">
+            <span id="val-saturation">1.0</span>
+        </div>
+    </div>
+    <button class="btn-apply" onclick="commitAdjust('saturation')">
+        <i class="fa-solid fa-check"></i> Terapkan Saturation
+    </button>
+
+    <div class="control-group" style="margin-top:14px;">
+        <label>Hue Rotate</label>
+        <div class="slider-row">
+            <input type="range" id="range-hue" min="0" max="180" value="0"
+                onmousedown="beginAdjust()"
+                ontouchstart="beginAdjust()"
+                oninput="document.getElementById('val-hue').textContent=this.value+'°'"
+                onmouseup="commitSlider('hue_rotate')"
+                ontouchend="commitSlider('hue_rotate')">
+            <span id="val-hue">0°</span>
+        </div>
+    </div>
+    <button class="btn-apply" onclick="commitAdjust('hue_rotate')">
+        <i class="fa-solid fa-check"></i> Terapkan Hue Rotate
+    </button>
+
+    <p class="section-label" style="margin-top:20px;">Enhancement</p>
+    <button class="btn-apply" onclick="applyFilter('histogram_equalization')">
+        <i class="fa-solid fa-chart-area"></i> Histogram Equalization
+    </button>
+</div>
 
         <!-- ═══════════════════════════
              TAB FILTER & NOISE
@@ -966,11 +978,35 @@ function updateSliderVal(slider) {
         document.getElementById('val-contrast').textContent = (slider.value / 10).toFixed(1);
 }
 
-function handleBrightnessContrast(slider) {
-    updateSliderVal(slider);
-    const b = document.getElementById('range-brightness').value;
-    const c = document.getElementById('range-contrast').value / 10;
-    applyFilterPreview('brightness_contrast', { brightness: b, contrast: c });
+// Dipanggil saat slider dilepas — preview dari adjustment_base
+function commitSlider(type) {
+    adjustStarted = false;
+    if (type === 'brightness_contrast') {
+        const b = document.getElementById('range-brightness').value;
+        const c = document.getElementById('range-contrast').value / 10;
+        applyFilterPreview('brightness_contrast', { brightness: b, contrast: c });
+    } else if (type === 'saturation') {
+        const v = document.getElementById('range-saturation').value / 10;
+        applyFilterPreview('saturation', { value: v });
+    } else if (type === 'hue_rotate') {
+        const a = document.getElementById('range-hue').value;
+        applyFilterPreview('hue_rotate', { angle: a });
+    }
+}
+
+// Dipanggil tombol Terapkan — commit ke history
+function commitAdjust(type) {
+    if (type === 'brightness_contrast') {
+        const b = document.getElementById('range-brightness').value;
+        const c = document.getElementById('range-contrast').value / 10;
+        applyFilter('brightness_contrast', { brightness: b, contrast: c });
+    } else if (type === 'saturation') {
+        const v = document.getElementById('range-saturation').value / 10;
+        applyFilter('saturation', { value: v });
+    } else if (type === 'hue_rotate') {
+        const a = document.getElementById('range-hue').value;
+        applyFilter('hue_rotate', { angle: a });
+    }
 }
 
 // =============================================
@@ -1150,6 +1186,18 @@ function onTextClick(e) {
     stopTextMode();
     applyFilter('add_text', { text, size, x: realX, y: realY, color });
 }
+
+// Update semua label slider saat halaman pertama load
+document.addEventListener('DOMContentLoaded', function() {
+    const brightness = document.getElementById('range-brightness');
+    const contrast   = document.getElementById('range-contrast');
+    const saturation = document.getElementById('range-saturation');
+    const hue        = document.getElementById('range-hue');
+    if (brightness) document.getElementById('val-brightness').textContent = brightness.value;
+    if (contrast)   document.getElementById('val-contrast').textContent   = (contrast.value / 10).toFixed(1);
+    if (saturation) document.getElementById('val-saturation').textContent = (saturation.value / 10).toFixed(1);
+    if (hue)        document.getElementById('val-hue').textContent        = hue.value + '°';
+});
 </script>
 </body>
 </html>
