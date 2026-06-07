@@ -1,9 +1,3 @@
-"""
-PhotoLab - Image Processing Application (Final Version with Stateful Channels)
-Fitur: Grayscale, threshold, morphology, channel split, edge detection, segmentation, dan banyak lagi.
-Semua output dikonversi ke BGR untuk consistency, crop dipreservasi dengan benar.
-"""
-
 import os
 import io
 import base64
