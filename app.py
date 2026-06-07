@@ -15,6 +15,18 @@ from processing.compression  import apply_compress_jpeg, apply_compress_rle
 
 app = Flask(__name__)
 
+# =========================================================================
+# 1. TAMBAHAN: MEMBUAT FOLDER STORAGE OTOMATIS DI SERVER RENDER
+# =========================================================================
+# Ini mencegah aplikasi crash (Error Status 1) akibat folder kosong yang 
+# tidak terbawa dari GitHub ke server cloud.
+UPLOAD_FOLDER = os.path.join('static', 'uploads')
+OUTPUT_FOLDER = os.path.join('static', 'outputs')
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+# =========================================================================
+
 image_state = {
     'original':         None,
     'current':          None,
@@ -434,3 +446,15 @@ def process_image_api():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+# =========================================================================
+# 2. TAMBAHAN: BLOK EKSEKUSI SERVER DI BAGIAN PALING BAWAH FILE
+# =========================================================================
+# Blok ini wajib berada di baris paling terakhir dari file app.py Anda.
+# Berfungsi untuk menangkap Port dinamis dari server Render secara otomatis.
+if __name__ == '__main__':
+    # Mengambil port environment dari Render, default ke 5000 jika dijalankan lokal
+    port = int(os.environ.get("PORT", 5000))
+    # Jalankan menggunakan host biner universal (0.0.0.0) agar bisa diakses publik
+    app.run(host='0.0.0.0', port=port, debug=False)
+# =========================================================================
