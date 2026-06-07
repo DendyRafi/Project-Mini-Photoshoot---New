@@ -1,17 +1,19 @@
-import os
-import io
-import base64
-import cv2
-import numpy as np
+import os, io, base64, cv2, numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
 
-app = Flask(__name__)
+from processing.color       import apply_grayscale, apply_color_channel, apply_saturation, apply_hue_rotate
+from processing.enhance     import apply_brightness_contrast, apply_histogram_equalization
+from processing.filter      import apply_blur, apply_sharpening, apply_noise_saltpepper, apply_noise_removal
+from processing.edge        import apply_edge_detection, apply_edge_robert, apply_edge_log
+from processing.transform   import apply_rotate, apply_flip, apply_resize, apply_crop_center, apply_crop_manual, apply_translation, apply_interpolation
+from processing.morphology  import apply_morphology, apply_threshold
+from processing.segmentation import apply_segmentation_threshold, apply_segmentation_edge, apply_segmentation_region
+from processing.compression  import apply_compress_jpeg, apply_compress_rle
 
-UPLOAD_FOLDER = 'static/uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app = Flask(__name__)
 
 image_state = {
     'original':         None,
@@ -29,9 +31,9 @@ VALID_ACTIONS = {
     'blur_filter', 'rotate', 'flip', 'resize', 'crop_center',
     'crop_manual', 'add_text', 'edge_detection', 'edge_robert',
     'edge_log', 'morphology', 'compress', 'compress_rle',
-    'cnn_detect', 'translation', 'noise_saltpepper',
-    'noise_removal_sp', 'threshold', 'segmentation_threshold',
-    'segmentation_edge', 'segmentation_region', 'interpolation'
+    'translation', 'noise_saltpepper', 'noise_removal_sp', 
+    'threshold', 'segmentation_threshold', 'segmentation_edge', 
+    'segmentation_region', 'interpolation'
 }
 
 # =============================================
@@ -264,15 +266,15 @@ def process_image_api():
             img = base.copy() if base is not None else image_state['current'].copy()
         else:
             image_state['adjustment_base'] = None
-            
+
             # State Management perbaikan Undo berurutan untuk fitur Color Channel Split
             if action == 'color_channel':
                 if image_state['before_channel_view'] is None:
                     image_state['before_channel_view'] = image_state['current'].copy()
-                
+
                 push_history(image_state['current'])
                 img = image_state['before_channel_view'].copy()
-                
+
             elif action != 'color_channel' and image_state['before_channel_view'] is not None:
                 if is_single_channel_view(image_state['current']):
                     img = image_state['before_channel_view'].copy()
@@ -296,99 +298,50 @@ def process_image_api():
         # ══════════════════════════════════════════════════════════════
 
         if action == 'grayscale':
-            out_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            out_img = cv2.cvtColor(out_img, cv2.COLOR_GRAY2BGR)
+            out_img = apply_grayscale(img)
 
         elif action == 'histogram_equalization':
-            ycrcb = cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb)
-            ycrcb[:, :, 0] = cv2.equalizeHist(ycrcb[:, :, 0])
-            out_img = cv2.cvtColor(ycrcb, cv2.COLOR_YCrCb2BGR)
+            out_img = apply_histogram_equalization(img)
 
         elif action == 'brightness_contrast':
-            b_val = int(params.get('brightness', 0))
-            c_val = float(params.get('contrast', 1.0))
-            out_img = cv2.convertScaleAbs(img, alpha=c_val, beta=b_val)
+            out_img = apply_brightness_contrast(img, params)
 
         elif action == 'saturation':
-            value = float(params.get('value', 1.0))
-            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32)
-            hsv[:, :, 1] = np.clip(hsv[:, :, 1] * value, 0, 255)
-            out_img = cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2BGR)
+            out_img = apply_saturation(img, params)
 
         elif action == 'hue_rotate':
-            angle = int(params.get('angle', 0))
-            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.int32)
-            hsv[:, :, 0] = (hsv[:, :, 0] + angle) % 180
-            out_img = cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2BGR)
+            out_img = apply_hue_rotate(img, params)
 
         elif action == 'color_channel':
-            channel = params.get('channel', 'R')
-            
             if image_state['before_channel_view'] is None:
                 image_state['before_channel_view'] = image_state['current'].copy()
-            
-            src = img.copy()
-            src = ensure_bgr(src)
-            b, g, r = cv2.split(src)
-            blank = np.zeros_like(b)
-            if channel == 'R':
-                out_img = cv2.merge([blank, blank, r])
-            elif channel == 'G':
-                out_img = cv2.merge([blank, g, blank])
-            elif channel == 'B':
-                out_img = cv2.merge([b, blank, blank])
-            else:
-                out_img = src.copy()
-            
+
+            out_img = apply_color_channel(img, params)
+
             # Selaraskan out_img ke state global agar konsisten dicatat history di pipeline utama
             if not is_preview:
                 image_state['current'] = out_img.copy()
 
         elif action == 'sharpening':
-            kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
-            out_img = cv2.filter2D(img, -1, kernel)
+            out_img = apply_sharpening(img)
 
         elif action == 'blur_filter':
-            filter_type = params.get('type', 'gaussian')
-            k_size = int(params.get('kernel', 5))
-            if k_size % 2 == 0:
-                k_size += 1
-            if filter_type == 'gaussian':
-                out_img = cv2.GaussianBlur(img, (k_size, k_size), 0)
-            elif filter_type == 'median':
-                out_img = cv2.medianBlur(img, k_size)
+            out_img = apply_blur(img, params)
 
         elif action == 'rotate':
-            angle = int(params.get('angle', 0))
-            h, w = img.shape[:2]
-            M = cv2.getRotationMatrix2D((w / 2, h / 2), angle, 1.0)
-            out_img = cv2.warpAffine(img, M, (w, h))
+            out_img = apply_rotate(img, params)
 
         elif action == 'flip':
-            direction = params.get('direction', 'horizontal')
-            out_img = cv2.flip(img, 1 if direction == 'horizontal' else 0)
+            out_img = apply_flip(img, params)
 
         elif action == 'resize':
-            scale = float(params.get('scale', 100)) / 100.0
-            out_img = cv2.resize(img, None, fx=scale, fy=scale, interpolation=cv2.INTER_LINEAR)
+            out_img = apply_resize(img, params)
 
         elif action == 'crop_center':
-            h, w = img.shape[:2]
-            cy, cx = h // 2, w // 2
-            half = min(cy, cx)
-            out_img = img[cy - half:cy + half, cx - half:cx + half].copy()
+            out_img = apply_crop_center(img)
 
         elif action == 'crop_manual':
-            x = max(0, int(params.get('x', 0)))
-            y = max(0, int(params.get('y', 0)))
-            w = int(params.get('w', img.shape[1]))
-            h = int(params.get('h', img.shape[0]))
-            w = min(w, img.shape[1] - x)
-            h = min(h, img.shape[0] - y)
-            if w > 0 and h > 0:
-                out_img = img[y:y + h, x:x + w].copy()
-            else:
-                return jsonify({'error': 'Crop area invalid'}), 400
+            out_img = apply_crop_manual(img, params)
 
         elif action == 'add_text':
             text = params.get('text', 'Teks')
@@ -413,164 +366,46 @@ def process_image_api():
                         font_scale, (b2, g2, r2), thickness, cv2.LINE_AA)
 
         elif action == 'edge_detection':
-            method = params.get('method', 'canny')
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            if method == 'canny':
-                out_img = cv2.Canny(gray, 50, 150)
-            elif method == 'sobel':
-                sx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
-                sy = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
-                out_img = cv2.convertScaleAbs(np.sqrt(sx ** 2 + sy ** 2))
-            elif method == 'laplacian':
-                out_img = cv2.convertScaleAbs(cv2.Laplacian(gray, cv2.CV_64F))
-            elif method == 'prewitt':
-                kx = np.array([[1, 0, -1], [1, 0, -1], [1, 0, -1]], dtype=np.float32)
-                ky = np.array([[1, 1, 1], [0, 0, 0], [-1, -1, -1]], dtype=np.float32)
-                px = cv2.filter2D(gray, -1, kx)
-                py = cv2.filter2D(gray, -1, ky)
-                out_img = cv2.convertScaleAbs(np.sqrt(px.astype(np.float32) ** 2 + py.astype(np.float32) ** 2))
-            out_img = ensure_bgr(out_img)
+            out_img = apply_edge_detection(img, params)
 
         elif action == 'edge_robert':
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.float32)
-            kx = np.array([[1, 0], [0, -1]], dtype=np.float32)
-            ky = np.array([[0, 1], [-1, 0]], dtype=np.float32)
-            px = cv2.filter2D(gray, -1, kx)
-            py = cv2.filter2D(gray, -1, ky)
-            out_img = cv2.convertScaleAbs(np.sqrt(px ** 2 + py ** 2))
-            out_img = ensure_bgr(out_img)
+            out_img = apply_edge_robert(img)
 
         elif action == 'edge_log':
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-            out_img = cv2.convertScaleAbs(cv2.Laplacian(blurred, cv2.CV_64F))
-            out_img = ensure_bgr(out_img)
+            out_img = apply_edge_log(img)
 
         elif action == 'morphology':
-            m_type = params.get('type', 'erosion')
-            k_size = int(params.get('kernel', 3))
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            
-            # Proteksi agar dari Canny Edge Detection ke Erosi/Dilasi tidak langsung hitam blanket.
-            unique_vals = np.unique(gray)
-            if len(unique_vals) <= 2 and 255 in unique_vals:
-                thresh = gray
-            else:
-                _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
-                
-            kernel = np.ones((k_size, k_size), np.uint8)
-            if m_type == 'erosion':
-                out_img = cv2.erode(thresh, kernel, iterations=1)
-            elif m_type == 'dilation':
-                out_img = cv2.dilate(thresh, kernel, iterations=1)
-            out_img = ensure_bgr(out_img)
+            out_img = apply_morphology(img, params)
 
         elif action == 'compress':
-            quality = max(5, min(100, int(params.get('quality', 80))))
-            success, buffer = cv2.imencode('.jpg', img, [cv2.IMWRITE_JPEG_QUALITY, quality])
-            if success:
-                file_bytes = np.frombuffer(buffer, np.uint8)
-                out_img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-            else:
-                out_img = img.copy()
+            out_img = apply_compress_jpeg(img, params)
 
         elif action == 'compress_rle':
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            flat = gray.flatten()
-            runs, count = [], 1
-            for i in range(1, len(flat)):
-                if flat[i] == flat[i - 1]:
-                    count += 1
-                else:
-                    runs.append((flat[i - 1], count))
-                    count = 1
-            runs.append((flat[-1], count))
-            decoded = np.array([v for val, cnt in runs for v in [val] * cnt],
-                               dtype=np.uint8).reshape(gray.shape)
-            out_img = cv2.cvtColor(decoded, cv2.COLOR_GRAY2BGR)
-            ratio = len(flat) / (len(runs) * 2) if runs else 1
-            cv2.putText(out_img, f"RLE Ratio: {ratio:.2f}x",
-                        (10, 30), cv2.FONT_HERSHEY_DUPLEX, 0.8, (87, 255, 168), 2)
-
-        elif action == 'cnn_detect':
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            _, thresh = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY_INV)
-            contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            out_img = img.copy()
-            for c in contours:
-                if cv2.contourArea(c) > 500:
-                    x, y, w, h = cv2.boundingRect(c)
-                    cv2.rectangle(out_img, (x, y), (x + w, y + h), (87, 255, 168), 2)
-                    cv2.putText(out_img, "Objek", (x, y - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (87, 255, 168), 1)
+            out_img = apply_compress_rle(img)
 
         elif action == 'translation':
-            tx = int(params.get('tx', 0))
-            ty = int(params.get('ty', 0))
-            h, w = img.shape[:2]
-            M = np.float32([[1, 0, tx], [0, 1, ty]])
-            out_img = cv2.warpAffine(img, M, (w, h))
+            out_img = apply_translation(img, params)
 
         elif action == 'noise_saltpepper':
-            amount = float(params.get('amount', 0.02))
-            out_img = img.copy()
-            total = int(amount * out_img.size)
-            coords = [np.random.randint(0, i, total // 2) for i in out_img.shape[:2]]
-            out_img[coords[0], coords[1]] = 255
-            coords = [np.random.randint(0, i, total // 2) for i in out_img.shape[:2]]
-            out_img[coords[0], coords[1]] = 0
+            out_img = apply_noise_saltpepper(img, params)
 
         elif action == 'noise_removal_sp':
-            k_size = int(params.get('kernel', 3))
-            if k_size % 2 == 0:
-                k_size += 1
-            out_img = cv2.medianBlur(img, k_size)
+            out_img = apply_noise_removal(img, params)
 
         elif action == 'threshold':
-            thresh_val = int(params.get('value', 127))
-            method = params.get('method', 'binary')
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            if method == 'binary':
-                _, out_img = cv2.threshold(gray, thresh_val, 255, cv2.THRESH_BINARY)
-            elif method == 'binary_inv':
-                _, out_img = cv2.threshold(gray, thresh_val, 255, cv2.THRESH_BINARY_INV)
-            elif method == 'otsu':
-                _, out_img = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-            elif method == 'adaptive':
-                out_img = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-            out_img = ensure_bgr(out_img)
+            out_img = apply_threshold(img, params)
 
         elif action == 'segmentation_threshold':
-            thresh_val = int(params.get('value', 127))
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            _, mask = cv2.threshold(gray, thresh_val, 255, cv2.THRESH_BINARY)
-            out_img = cv2.bitwise_and(img, img, mask=mask)
+            out_img = apply_segmentation_threshold(img, params)
 
         elif action == 'segmentation_edge':
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            edges = cv2.Canny(gray, 50, 150)
-            contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            out_img = img.copy()
-            cv2.drawContours(out_img, contours, -1, (87, 255, 168), 2)
+            out_img = apply_segmentation_edge(img)
 
         elif action == 'segmentation_region':
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-            dist = cv2.distanceTransform(thresh, cv2.DIST_L2, 5)
-            _, sure_fg = cv2.threshold(dist, 0.5 * dist.max(), 255, 0)
-            sure_fg = sure_fg.astype(np.uint8)
-            unknown = cv2.subtract(thresh, sure_fg)
-            _, markers = cv2.connectedComponents(sure_fg)
-            markers = markers + 1
-            markers[unknown == 255] = 0
-            markers = cv2.watershed(img, markers)
-            out_img = img.copy()
-            out_img[markers == -1] = [87, 255, 168]
+            out_img = apply_segmentation_region(img)
 
         elif action == 'interpolation':
-            scale = float(params.get('scale', 1.5))
-            method = params.get('method', 'bilinear')
-            interp = cv2.INTER_LINEAR if method == 'bilinear' else cv2.INTER_NEAREST
-            out_img = cv2.resize(img, None, fx=scale, fy=scale, interpolation=interp)
+            out_img = apply_interpolation(img, params)
 
         # ══════════════════════════════════════════════════════════════
         # UPDATE STATE
