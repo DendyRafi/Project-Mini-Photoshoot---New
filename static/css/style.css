@@ -708,3 +708,57 @@ button { cursor: pointer; font-family: var(--font-body); border: none; backgroun
     color: var(--text-3);
     flex-shrink: 0;
 }
+
+/* Pastikan posisi brand-name relative untuk acuan bayangan */
+.brand-name.glitch-logo {
+    position: relative;
+    display: inline-block;
+}
+
+/* Membuat 2 lapisan bayangan tiruan di belakang teks utama */
+.brand-name.glitch-logo::before,
+.brand-name.glitch-logo::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    color: #ffffff; /* Memaksa teks bayangan menjadi putih saat glitch */
+    font-weight: bold;
+    clip-path: inset(100% 0 0 0); /* Sembunyikan saat normal */
+}
+
+/* Efek warna Cyan pada bayangan pertama */
+.brand-name.glitch-logo.is-glitching::before {
+    left: 2px;
+    text-shadow: -2px 0 #00fff2;
+    animation: glitch-anim-1 0.3s infinite linear alternate-reverse;
+}
+
+/* Efek warna Magenta pada bayangan kedua */
+.brand-name.glitch-logo.is-glitching::after {
+    left: -2px;
+    text-shadow: -2px 0 #ff00c3;
+    animation: glitch-anim-2 0.3s infinite linear alternate-reverse;
+}
+
+/* Animasi distorsi horizontal lapisan 1 */
+@keyframes glitch-anim-1 {
+    0% { clip-path: inset(15% 0 40% 0); }
+    20% { clip-path: inset(55% 0 15% 0); }
+    40% { clip-path: inset(35% 0 50% 0); }
+    60% { clip-path: inset(75% 0 5% 0); }
+    80% { clip-path: inset(5% 0 75% 0); }
+    100% { clip-path: inset(20% 0 30% 0); }
+}
+
+/* Animasi distorsi horizontal lapisan 2 */
+@keyframes glitch-anim-2 {
+    0% { clip-path: inset(65% 0 10% 0); }
+    25% { clip-path: inset(10% 0 60% 0); }
+    50% { clip-path: inset(50% 0 25% 0); }
+    75% { clip-path: inset(25% 0 40% 0); }
+    100% { clip-path: inset(85% 0 5% 0); }
+}

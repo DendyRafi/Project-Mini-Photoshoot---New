@@ -502,3 +502,27 @@ document.addEventListener('DOMContentLoaded', function() {
     if (saturation) document.getElementById('val-saturation').textContent = (saturation.value / 10).toFixed(1);
     if (hue)        document.getElementById('val-hue').textContent        = hue.value + '°';
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Targetkan class brand-name yang baru kita beri penanda glitch
+    const logo = document.querySelector(".brand-name.glitch-logo");
+
+    if (logo) {
+        function triggerGlitch() {
+            // Aktifkan glitch
+            logo.classList.add("is-glitching");
+
+            // Matikan glitch setelah 350ms agar kedipannya cepat dan natural
+            setTimeout(() => {
+                logo.classList.remove("is-glitching");
+            }, 350);
+
+            // Pengulangan acak antara 3 sampai 6 detik sekali
+            const randomDelay = Math.random() * (1000 - 500) + 3000;
+            setTimeout(triggerGlitch, randomDelay);
+        }
+
+        // Jalankan efek pertama kali setelah web di-load
+        setTimeout(triggerGlitch, 1500);
+    }
+});
