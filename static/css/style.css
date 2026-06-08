@@ -824,59 +824,112 @@ button { cursor: pointer; font-family: var(--font-body); border: none; backgroun
     .rail-btn { width: 36px; height: 36px; font-size: 14px; }
     .rail-logo { width: 30px; height: 30px; font-size: 13px; }
 
+    /* FIX 3 — Tombol reset di pojok kiri bawah tidak terpotong */
+    .rail-bottom {
+        padding-bottom: 12px;
+    }
+
     /* Workspace penuh di mobile */
     .workspace {
         width: calc(100vw - 48px);
+        overflow: hidden;
     }
 
-    /* Top bar mobile */
+    /* FIX 1 — Top bar: sembunyikan teks tombol download, tampilkan icon saja */
     .top-bar {
-        padding: 0 10px;
-        gap: 4px;
+        padding: 0 8px;
+        gap: 2px;
+        flex-wrap: nowrap;
     }
 
-    .brand-name { font-size: 15px; }
+    .brand-name { font-size: 14px; }
     .file-info  { display: none; }
 
-    /* Tombol Undo & Reset lebih compact */
+    /* Tombol Undo & Reset: icon saja, sembunyikan teks */
     #undo-btn span,
     .btn-icon-only span { display: none; }
 
     #undo-btn,
     .btn-icon-only {
-        padding: 0 8px !important;
-        width: 32px !important;
+        padding: 0 6px !important;
+        width: 30px !important;
+        min-width: 30px !important;
     }
 
     /* Input filename & format lebih kecil */
-    #input-filename { width: 70px !important; }
-    #select-format  { width: 55px !important; }
+    #input-filename { width: 60px !important; font-size: 10px !important; }
+    #select-format  { width: 50px !important; font-size: 10px !important; }
 
+    /* FIX 1 — Tombol download: icon saja, sembunyikan teks */
     .btn-download {
-        font-size: 11px;
-        padding: 6px 10px;
+        width: 32px !important;
+        min-width: 32px !important;
+        height: 32px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 14px !important;
+        margin-left: 4px !important;
     }
 
-    /* Preview panels di mobile: stack vertikal */
+    .btn-download span,
+    .btn-download .download-text { display: none; }
+
+    /* divider lebih kecil */
+    .divider-v { margin: 0 2px; }
+
+    /* FIX 2 — Preview panels: stack vertikal dengan label masing-masing */
     .preview-state {
-        padding: 12px;
-        overflow: hidden;
+        padding: 10px 8px;
+        overflow-y: auto;
+        height: 100%;
     }
 
+    /* Sembunyikan label row lama (Sebelum & Sesudah dalam satu baris) */
     .preview-label-row {
-        gap: 6px;
+        display: none;
     }
 
+    /* Stack panel vertikal */
     .preview-panels {
         flex-direction: column;
-        gap: 10px;
-        min-height: 0;
+        gap: 12px;
     }
 
     .panel-divider { display: none; }
 
+    /* FIX 2 — Tambah label di atas masing-masing panel */
+    .panel-box:first-child::before {
+        content: 'Sebelum (Original)';
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--orange);
+        padding: 6px 10px 4px;
+        border-left: 3px solid var(--orange);
+        background: var(--bg-card);
+        border-radius: 4px 4px 0 0;
+        margin-bottom: -4px;
+    }
+
+    .panel-box:last-child::before {
+        content: 'Sesudah (Hasil Edit)';
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--accent);
+        padding: 6px 10px 4px;
+        border-left: 3px solid var(--accent);
+        background: var(--bg-card);
+        border-radius: 4px 4px 0 0;
+        margin-bottom: -4px;
+    }
+
     .panel-box {
-        min-height: 32vh;
+        min-height: 35vh;
+        border-radius: 0 var(--radius-lg) var(--radius-lg) var(--radius-lg);
     }
 
     .image-frame,
@@ -887,21 +940,28 @@ button { cursor: pointer; font-family: var(--font-body); border: none; backgroun
     .image-frame img,
     #display-processed {
         width: 100% !important;
-        height: 100% !important;
-        max-width: none !important;
-        max-height: none !important;
+        height: auto !important;
+        max-width: 100% !important;
         object-fit: contain;
     }
 
-    /* Canvas zone */
+    /* Canvas zone scroll */
     .canvas-zone {
-        overflow: hidden;
+        overflow-y: auto;
+        align-items: flex-start;
     }
 
     /* Upload card lebih kecil */
     .upload-card {
-        padding: 28px 20px;
+        padding: 24px 16px;
+        margin: 70px 8px 0 8px;
     }
 
     .floating-pills { display: none; }
+
+    /* Status bar lebih kecil */
+    .status-bar {
+        font-size: 10px;
+        padding: 0 10px;
+    }
 }

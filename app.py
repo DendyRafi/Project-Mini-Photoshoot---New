@@ -1,25 +1,24 @@
-import os, io, base64, cv2, numpy as np
+import os, io, base64, uuid, cv2, numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
+from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify, session
 
-from processing.color       import apply_grayscale, apply_color_channel, apply_saturation, apply_hue_rotate
-from processing.enhance     import apply_brightness_contrast, apply_histogram_equalization
-from processing.filter      import apply_blur, apply_sharpening, apply_noise_saltpepper, apply_noise_removal
-from processing.edge        import apply_edge_detection, apply_edge_robert, apply_edge_log
-from processing.transform   import apply_rotate, apply_flip, apply_resize, apply_crop_center, apply_crop_manual, apply_translation, apply_interpolation
-from processing.morphology  import apply_morphology, apply_threshold
+from processing.color        import apply_grayscale, apply_color_channel, apply_saturation, apply_hue_rotate
+from processing.enhance      import apply_brightness_contrast, apply_histogram_equalization
+from processing.filter       import apply_blur, apply_sharpening, apply_noise_saltpepper, apply_noise_removal
+from processing.edge         import apply_edge_detection, apply_edge_robert, apply_edge_log
+from processing.transform    import apply_rotate, apply_flip, apply_resize, apply_crop_center, apply_crop_manual, apply_translation, apply_interpolation
+from processing.morphology   import apply_morphology, apply_threshold
 from processing.segmentation import apply_segmentation_threshold, apply_segmentation_edge, apply_segmentation_region
 from processing.compression  import apply_compress_jpeg, apply_compress_rle
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
 # =========================================================================
 # 1. TAMBAHAN: MEMBUAT FOLDER STORAGE OTOMATIS DI SERVER RENDER
 # =========================================================================
-# Ini mencegah aplikasi crash (Error Status 1) akibat folder kosong yang 
-# tidak terbawa dari GitHub ke server cloud.
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 OUTPUT_FOLDER = os.path.join('static', 'outputs')
 
@@ -27,15 +26,8 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 # =========================================================================
 
-image_state = {
-    'original':         None,
-    'current':          None,
-    'history':          [],
-    'filename':         'image.png',
-    'adjustment_base':  None,
-    'original_dims':    None,  # Track original dimensions untuk validasi crop
-    'before_channel_view': None,  # State sebelum pilih color_channel (untuk recovery)
-}
+# State disimpan per user
+image_states_per_user = {}
 
 VALID_ACTIONS = {
     'grayscale', 'histogram_equalization', 'brightness_contrast',
@@ -43,14 +35,34 @@ VALID_ACTIONS = {
     'blur_filter', 'rotate', 'flip', 'resize', 'crop_center',
     'crop_manual', 'add_text', 'edge_detection', 'edge_robert',
     'edge_log', 'morphology', 'compress', 'compress_rle',
-    'translation', 'noise_saltpepper', 'noise_removal_sp', 
-    'threshold', 'segmentation_threshold', 'segmentation_edge', 
-    'segmentation_region', 'interpolation'
+    'translation', 'noise_saltpepper', 'noise_removal_sp',
+    'threshold', 'segmentation_threshold', 'segmentation_edge',
+    'segmentation_region', 'interpolation', 'cnn_detect'
 }
 
 # =============================================
 # HELPER FUNCTIONS
 # =============================================
+
+def get_image_state():
+    """Ambil state milik user saat ini, lalu buat jika belum ada."""
+    if 'user_id' not in session:
+        session['user_id'] = str(uuid.uuid4())
+
+    user_id = session['user_id']
+
+    if user_id not in image_states_per_user:
+        image_states_per_user[user_id] = {
+            'original': None,
+            'current': None,
+            'history': [],
+            'filename': 'image.png',
+            'adjustment_base': None,
+            'original_dims': None,
+            'before_channel_view': None,
+        }
+
+    return image_states_per_user[user_id]
 
 def numpy_to_base64(img_array):
     """Convert numpy array ke base64 PNG string."""
@@ -64,7 +76,7 @@ def numpy_to_base64(img_array):
     b64 = base64.b64encode(buffer).decode('utf-8')
     return f"data:image/png;base64,{b64}"
 
-def push_history(img_array):
+def push_history(image_state, img_array):
     """Simpan snapshot ke history (max 20 items)."""
     if img_array is not None and img_array.size > 0:
         image_state['history'].append(img_array.copy())
@@ -80,6 +92,7 @@ def generate_histogram_base64(img_array):
         ax = plt.axes()
         ax.set_facecolor('#1e1e22')
         ax.tick_params(colors='#9494a0', labelsize=8)
+
         if len(img_array.shape) == 2:
             hist = cv2.calcHist([img_array], [0], None, [256], [0, 256])
             plt.plot(hist, color='#a8ff57', linewidth=1.5)
@@ -88,6 +101,7 @@ def generate_histogram_base64(img_array):
             for i, hc in enumerate(hex_colors):
                 hist = cv2.calcHist([img_array], [i], None, [256], [0, 256])
                 plt.plot(hist, color=hc, linewidth=1.5)
+
         plt.xlim([0, 256])
         plt.tight_layout()
         buf = io.BytesIO()
@@ -125,7 +139,7 @@ def is_single_channel_view(img):
     channels_with_data = sum([b_sum > 0, g_sum > 0, r_sum > 0])
     return channels_with_data == 1
 
-def reset_state_on_upload(img, filename):
+def reset_state_on_upload(image_state, img, filename):
     """Reset state saat upload/load gambar baru."""
     image_state['original'] = img.copy()
     image_state['current'] = img.copy()
@@ -141,47 +155,63 @@ def reset_state_on_upload(img, filename):
 
 @app.route('/')
 def index():
+    image_state = get_image_state()
+
     original_b64 = numpy_to_base64(image_state['original'])
     current_b64 = numpy_to_base64(image_state['current'])
     hist_ori_b64 = generate_histogram_base64(image_state['original'])
     hist_proc_b64 = generate_histogram_base64(image_state['current'])
     can_undo = len(image_state['history']) > 0
-    return render_template('index.html',
-                           original_image=original_b64,
-                           processed_image=current_b64,
-                           hist_original=hist_ori_b64,
-                           hist_processed=hist_proc_b64,
-                           can_undo=can_undo,
-                           filename=image_state['filename'])
+
+    return render_template(
+        'index.html',
+        original_image=original_b64,
+        processed_image=current_b64,
+        hist_original=hist_ori_b64,
+        hist_processed=hist_proc_b64,
+        can_undo=can_undo,
+        filename=image_state['filename']
+    )
 
 @app.route('/upload', methods=['POST'])
 def upload_image():
+    image_state = get_image_state()
+
     if 'image' not in request.files:
         return redirect(url_for('index'))
+
     file = request.files['image']
     if file.filename == '':
         return redirect(url_for('index'))
+
     file_bytes = np.frombuffer(file.read(), np.uint8)
     img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
     if img is not None:
-        reset_state_on_upload(img, file.filename or 'image.png')
+        reset_state_on_upload(image_state, img, file.filename or 'image.png')
+
     return redirect(url_for('index'))
 
 @app.route('/load_sample')
 def load_sample():
+    image_state = get_image_state()
+
     color = request.args.get('color', 'green')
     img = np.zeros((400, 400, 3), dtype=np.uint8)
+
     if color == 'green':
         img[:] = (0, 200, 0)
     elif color == 'purple':
         img[:] = (200, 0, 150)
     elif color == 'blue':
         img[:] = (255, 100, 0)
-    reset_state_on_upload(img, f"sample_{color}.png")
+
+    reset_state_on_upload(image_state, img, f"sample_{color}.png")
     return redirect(url_for('index'))
 
 @app.route('/reset')
 def reset_image():
+    image_state = get_image_state()
+
     image_state['original'] = None
     image_state['current'] = None
     image_state['history'] = []
@@ -189,29 +219,39 @@ def reset_image():
     image_state['original_dims'] = None
     image_state['filename'] = 'image.png'
     image_state['before_channel_view'] = None
+
     return redirect(url_for('index'))
 
 @app.route('/download')
 def download_image():
+    image_state = get_image_state()
+
     if image_state['current'] is None:
         return redirect(url_for('index'))
+
     fmt = request.args.get('format', 'png').lower()
     filename = request.args.get('filename', 'hasil-edit').strip()
+
     if fmt not in ['png', 'jpg', 'bmp']:
         fmt = 'png'
+
     filename = "".join(c for c in filename if c.isalnum() or c in ('-', '_')).strip()
     if not filename:
         filename = 'hasil-edit'
+
     img = image_state['current']
     if not is_valid_image(img):
         return redirect(url_for('index'))
+
     img = ensure_bgr(img)
     ext = '.jpg' if fmt == 'jpg' else f'.{fmt}'
     mime = 'image/jpeg' if fmt == 'jpg' else f'image/{fmt}'
     params = [cv2.IMWRITE_JPEG_QUALITY, 95] if fmt == 'jpg' else []
+
     success, buffer = cv2.imencode(ext, img, params)
     if not success:
         return redirect(url_for('index'))
+
     return send_file(
         io.BytesIO(buffer.tobytes()),
         mimetype=mime,
@@ -225,33 +265,54 @@ def download_image():
 
 @app.route('/api/undo', methods=['POST'])
 def undo():
+    image_state = get_image_state()
+
     if len(image_state['history']) == 0:
         return jsonify({'error': 'Tidak ada yang bisa di-undo'}), 400
+
     image_state['current'] = image_state['history'].pop()
     image_state['adjustment_base'] = None
-    image_state['before_channel_view'] = None  # Clear channel view state saat undo
+    image_state['before_channel_view'] = None
+
     current_b64 = numpy_to_base64(image_state['current'])
     hist_b64 = generate_histogram_base64(image_state['current'])
     can_undo = len(image_state['history']) > 0
-    return jsonify({'processed_image': current_b64, 'hist_proc': hist_b64, 'can_undo': can_undo})
+
+    return jsonify({
+        'processed_image': current_b64,
+        'hist_proc': hist_b64,
+        'can_undo': can_undo
+    })
 
 @app.route('/api/reset_to_original', methods=['POST'])
 def reset_to_original():
+    image_state = get_image_state()
+
     if image_state['original'] is None:
         return jsonify({'error': 'Belum ada gambar'}), 400
-    push_history(image_state['current'])
+
+    push_history(image_state, image_state['current'])
     image_state['current'] = image_state['original'].copy()
     image_state['adjustment_base'] = None
-    image_state['before_channel_view'] = None  # Clear channel view state
+    image_state['before_channel_view'] = None
+
     current_b64 = numpy_to_base64(image_state['current'])
     hist_b64 = generate_histogram_base64(image_state['current'])
-    return jsonify({'processed_image': current_b64, 'hist_proc': hist_b64, 'can_undo': True})
+
+    return jsonify({
+        'processed_image': current_b64,
+        'hist_proc': hist_b64,
+        'can_undo': True
+    })
 
 @app.route('/api/begin_adjust', methods=['POST'])
 def begin_adjust():
     """Simpan snapshot saat user mulai menyentuh slider."""
+    image_state = get_image_state()
+
     if image_state['current'] is not None:
         image_state['adjustment_base'] = image_state['current'].copy()
+
     return jsonify({'ok': True})
 
 # =============================================
@@ -260,6 +321,8 @@ def begin_adjust():
 
 @app.route('/api/process', methods=['POST'])
 def process_image_api():
+    image_state = get_image_state()
+
     if image_state['current'] is None:
         return jsonify({'error': 'Belum ada gambar'}), 400
 
@@ -284,19 +347,19 @@ def process_image_api():
                 if image_state['before_channel_view'] is None:
                     image_state['before_channel_view'] = image_state['current'].copy()
 
-                push_history(image_state['current'])
+                push_history(image_state, image_state['current'])
                 img = image_state['before_channel_view'].copy()
 
             elif action != 'color_channel' and image_state['before_channel_view'] is not None:
                 if is_single_channel_view(image_state['current']):
                     img = image_state['before_channel_view'].copy()
-                    push_history(img)
-                    image_state['before_channel_view'] = None  # Clear channel view mode
+                    push_history(image_state, img)
+                    image_state['before_channel_view'] = None
                 else:
-                    push_history(image_state['current'])
+                    push_history(image_state, image_state['current'])
                     img = image_state['current'].copy()
             else:
-                push_history(image_state['current'])
+                push_history(image_state, image_state['current'])
                 img = image_state['current'].copy()
 
         if not is_valid_image(img):
@@ -325,12 +388,8 @@ def process_image_api():
             out_img = apply_hue_rotate(img, params)
 
         elif action == 'color_channel':
-            if image_state['before_channel_view'] is None:
-                image_state['before_channel_view'] = image_state['current'].copy()
-
             out_img = apply_color_channel(img, params)
 
-            # Selaraskan out_img ke state global agar konsisten dicatat history di pipeline utama
             if not is_preview:
                 image_state['current'] = out_img.copy()
 
@@ -359,23 +418,31 @@ def process_image_api():
             text = params.get('text', 'Teks')
             if not text.strip():
                 text = 'Teks'
+
             size = float(params.get('size', 32))
             x = int(params.get('x', 20))
             y = int(params.get('y', 50))
             color_hex = params.get('color', '#ffffff').lstrip('#')
+
             try:
                 r2 = int(color_hex[0:2], 16)
                 g2 = int(color_hex[2:4], 16)
                 b2 = int(color_hex[4:6], 16)
             except Exception:
                 r2, g2, b2 = 255, 255, 255
+
             font_scale = size / 20.0
             thickness = max(1, int(font_scale * 2))
             out_img = img.copy()
-            cv2.putText(out_img, text, (x + 2, y + 2), cv2.FONT_HERSHEY_DUPLEX,
-                        font_scale, (0, 0, 0), thickness + 2, cv2.LINE_AA)
-            cv2.putText(out_img, text, (x, y), cv2.FONT_HERSHEY_DUPLEX,
-                        font_scale, (b2, g2, r2), thickness, cv2.LINE_AA)
+
+            cv2.putText(
+                out_img, text, (x + 2, y + 2), cv2.FONT_HERSHEY_DUPLEX,
+                font_scale, (0, 0, 0), thickness + 2, cv2.LINE_AA
+            )
+            cv2.putText(
+                out_img, text, (x, y), cv2.FONT_HERSHEY_DUPLEX,
+                font_scale, (b2, g2, r2), thickness, cv2.LINE_AA
+            )
 
         elif action == 'edge_detection':
             out_img = apply_edge_detection(img, params)
@@ -419,6 +486,17 @@ def process_image_api():
         elif action == 'interpolation':
             out_img = apply_interpolation(img, params)
 
+        elif action == 'cnn_detect':
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            _, thresh = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY_INV)
+            contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            out_img = img.copy()
+            for c in contours:
+                if cv2.contourArea(c) > 500:
+                    x, y, w, h = cv2.boundingRect(c)
+                    cv2.rectangle(out_img, (x, y), (x + w, y + h), (87, 255, 168), 2)
+                    cv2.putText(out_img, "Objek", (x, y - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (87, 255, 168), 1)
+
         # ══════════════════════════════════════════════════════════════
         # UPDATE STATE
         # ══════════════════════════════════════════════════════════════
@@ -445,16 +523,5 @@ def process_image_api():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
-# =========================================================================
-# 2. TAMBAHAN: BLOK EKSEKUSI SERVER DI BAGIAN PALING BAWAH FILE
-# =========================================================================
-# Blok ini wajib berada di baris paling terakhir dari file app.py Anda.
-# Berfungsi untuk menangkap Port dinamis dari server Render secara otomatis.
-if __name__ == '__main__':
-    # Mengambil port environment dari Render, default ke 5000 jika dijalankan lokal
     port = int(os.environ.get("PORT", 5000))
-    # Jalankan menggunakan host biner universal (0.0.0.0) agar bisa diakses publik
     app.run(host='0.0.0.0', port=port, debug=False)
-# =========================================================================

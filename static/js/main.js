@@ -541,26 +541,12 @@ document.addEventListener("DOMContentLoaded", () => {
 // =============================================
 function isMobile() { return window.innerWidth <= 768; }
 
-function toggleMobilePanel() {
-    const panel   = document.querySelector('.tools-panel');
-    const overlay = document.getElementById('mobileOverlay');
-    if (!panel || !overlay) return;
-    panel.classList.toggle('mobile-open');
-    overlay.classList.toggle('active');
-}
-
 function closeMobilePanel() {
     const panel   = document.querySelector('.tools-panel');
     const overlay = document.getElementById('mobileOverlay');
     if (!panel || !overlay) return;
     panel.classList.remove('mobile-open');
     overlay.classList.remove('active');
-}
-
-function checkMobileLayout() {
-    const btn = document.querySelector('.mobile-menu-btn');
-    if (!btn) return;
-    btn.style.display = isMobile() ? 'flex' : 'none';
 }
 
 // Override switchTab agar di mobile otomatis buka panel dulu
@@ -577,11 +563,3 @@ switchTab = function(tabId) {
     }
 };
 
-window.addEventListener('resize', checkMobileLayout);
-
-// Jalankan setelah DOM benar-benar siap
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', checkMobileLayout);
-} else {
-    checkMobileLayout();
-}

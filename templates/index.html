@@ -597,28 +597,30 @@
                 </button>
                 <div class="divider-v"></div>
                 {% if processed_image %}
-                <div style="display:flex;gap:6px;align-items:center;">
-                    <input type="text" id="input-filename" placeholder="nama-file"
-                        style="width:100px;background:var(--bg-card);border:1px solid var(--border);
-                        color:var(--text-1);padding:5px 8px;border-radius:99px;font-size:11px;
-                        outline:none;font-family:var(--font-body);">
-                    <select id="select-format" class="input-field"
-                        style="width:70px;padding:5px 8px;font-size:11px;border-radius:99px;">
-                        <option value="png">PNG</option>
-                        <option value="jpg">JPG</option>
-                        <option value="bmp">BMP</option>
-                    </select>
-                    <a id="btn-download-link" href="/download?format=png&filename=hasil" style="text-decoration:none;">
-                        <button class="btn-download" onclick="updateDownloadLink()">
-                            <i class="fa-solid fa-download"></i> Simpan Gambar
-                        </button>
-                    </a>
-                </div>
-                {% else %}
-                <button class="btn-download" style="opacity:0.5;cursor:not-allowed;" disabled>
-                    <i class="fa-solid fa-download"></i> Simpan Gambar
-                </button>
-                {% endif %}
+<div style="display:flex;gap:6px;align-items:center;">
+    <input type="text" id="input-filename" placeholder="nama-file"
+        style="width:100px;background:var(--bg-card);border:1px solid var(--border);
+        color:var(--text-1);padding:5px 8px;border-radius:99px;font-size:11px;
+        outline:none;font-family:var(--font-body);">
+    <select id="select-format" class="input-field"
+        style="width:70px;padding:5px 8px;font-size:11px;border-radius:99px;">
+        <option value="png">PNG</option>
+        <option value="jpg">JPG</option>
+        <option value="bmp">BMP</option>
+    </select>
+    <a id="btn-download-link" href="/download?format=png&filename=hasil" style="text-decoration:none;">
+        <button class="btn-download" onclick="updateDownloadLink()">
+            <i class="fa-solid fa-download"></i>
+            <span class="download-text"> Simpan Gambar</span>
+        </button>
+    </a>
+</div>
+{% else %}
+<button class="btn-download" style="opacity:0.5;cursor:not-allowed;" disabled>
+    <i class="fa-solid fa-download"></i>
+    <span class="download-text"> Simpan Gambar</span>
+</button>
+{% endif %}
             </div>
         </header>
 
