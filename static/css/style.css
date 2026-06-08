@@ -954,7 +954,7 @@ button { cursor: pointer; font-family: var(--font-body); border: none; backgroun
     /* Upload card lebih kecil */
     .upload-card {
         padding: 24px 16px;
-        margin: 70px 8px 0 8px;
+        margin: 70px 4px 0 8px;
     }
 
     .floating-pills { display: none; }
