@@ -641,10 +641,16 @@
                     <div class="sample-section">
                         <p class="sample-hint">Atau coba gambar sampel:</p>
                         <div class="sample-thumbs">
-                            <div class="sample-img s1" onclick="window.location.href='/load_sample?color=green'" title="Hijau"></div>
-                            <div class="sample-img s2" onclick="window.location.href='/load_sample?color=purple'" title="Ungu"></div>
-                            <div class="sample-img s3" onclick="window.location.href='/load_sample?color=blue'" title="Biru"></div>
-                        </div>
+    <div class="sample-img" onclick="window.location.href='/load_sample?color=lena'" title="Lena">
+        <img src="{{ url_for('static', filename='samples/lena.jpg') }}" alt="Lena">
+    </div>
+    <div class="sample-img" onclick="window.location.href='/load_sample?color=buah'" title="Buah">
+        <img src="{{ url_for('static', filename='samples/buah.jpg') }}" alt="Buah">
+    </div>
+    <div class="sample-img" onclick="window.location.href='/load_sample?color=kucing'" title="Kucing">
+        <img src="{{ url_for('static', filename='samples/kucing.jpg') }}" alt="Kucing">
+    </div>
+</div>
                     </div>
                 </div>
                 <div class="floating-pills">

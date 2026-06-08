@@ -193,19 +193,23 @@ def upload_image():
 
 @app.route('/load_sample')
 def load_sample():
-    image_state = get_image_state()
+    sample = request.args.get('color', 'lena')
 
-    color = request.args.get('color', 'green')
-    img = np.zeros((400, 400, 3), dtype=np.uint8)
+    sample_map = {
+        'lena': 'static/samples/lena.jpg',
+        'buah': 'static/samples/buah.jpg',
+        'kucing': 'static/samples/kucing.jpg'
+    }
 
-    if color == 'green':
-        img[:] = (0, 200, 0)
-    elif color == 'purple':
-        img[:] = (200, 0, 150)
-    elif color == 'blue':
-        img[:] = (255, 100, 0)
+    path = sample_map.get(sample)
+    if not path or not os.path.exists(path):
+        return redirect(url_for('index'))
 
-    reset_state_on_upload(image_state, img, f"sample_{color}.png")
+    img = cv2.imread(path)
+    if img is not None:
+        image_state = get_image_state()
+        reset_state_on_upload(image_state, img, os.path.basename(path))
+
     return redirect(url_for('index'))
 
 @app.route('/reset')
