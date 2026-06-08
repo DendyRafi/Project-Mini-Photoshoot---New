@@ -826,7 +826,7 @@ button { cursor: pointer; font-family: var(--font-body); border: none; backgroun
 
     /* FIX 3 — Tombol reset di pojok kiri bawah tidak terpotong */
     .rail-bottom {
-        padding-bottom: 12px;
+        padding-bottom: 50px;
     }
 
     /* Workspace penuh di mobile */
